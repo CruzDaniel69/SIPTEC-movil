@@ -1,0 +1,39 @@
+<div class="encabezado">
+    <h1>Agregar implemento</h1>
+    <button type="button" class="boton-perfil-topbar" id="btnAbrirPerfil">
+        <span class="nombre-perfil-topbar" id="nombreUsuarioTopbar"></span>
+        <i class="fa-solid fa-circle-user"></i>
+    </button>
+</div>
+<div class="subtitulo-encabezado">Registrar un nuevo implemento o equipo al inventario</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">1. Nombre del equipo</div>
+    <input type="text" id="nombreEquipo" placeholder="Escribe el nombre del equipo" class="campo-simple" required>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">2. Código de inventario</div>
+    <input type="text" id="codigoInventario" placeholder="Ej. TAL-002" class="campo-simple" required>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">3. Marca</div>
+    <input type="text" id="marcaTexto" list="listaMarcas" class="campo-simple" placeholder="Escribe o elige una marca" required>
+    <datalist id="listaMarcas"></datalist>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">4. Categoría</div>
+    <input type="text" id="categoriaTexto" list="listaCategorias" class="campo-simple" placeholder="Escribe o elige una categoría" required>
+    <datalist id="listaCategorias"></datalist>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">5. Descripción (opcional)</div>
+    <textarea class="caja-area-texto" id="descripcionEquipo" placeholder="Escribe una descripción..." maxlength="150"
+        oninput="document.getElementById('c3').innerText = this.value.length"></textarea>
+    <div class="contador-caracteres"><span id="c3">0</span>/150</div>
+</div>
+
+<button class="boton-accion-morado" id="btnGuardarImplemento">Guardar implemento</button>

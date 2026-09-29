@@ -1,0 +1,197 @@
+import { obtenerDetallesHerramienta, actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
+import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
+import { obtenerHerramientas } from "../services/herramientaService.js";
+import { obtenerPrestamos, actualizarPrestamo } from "../services/prestamoService.js";
+import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
+import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
+
+let listaDetalles = [];
+let listaEstadosHerramienta = [];
+let listaHerramientas = [];
+let listaPrestamos = [];
+let listaEstadosPrestamo = [];
+let listaDetallesPrestamo = [];
+let detalleSeleccionado = null;
+
+function resolverPorCodigo(codigo) {
+    if (!codigo) return null;
+    const textoBusqueda = codigo.trim().toLowerCase();
+    return listaDetalles.find((item) => item.codInv.toLowerCase() === textoBusqueda);
+}
+
+export function initDevolucionController() {
+    const equipoCodigo = document.getElementById("equipoCodigo");
+    const btnBuscarManual = document.getElementById("btnBuscarManual");
+    const fechaDevolucion = document.getElementById("fechaDevolucion");
+    const estadoDisponible = document.getElementById("estadoDisponible");
+    const estadoDanado = document.getElementById("estadoDanado");
+    const observaciones = document.getElementById("observacionesDevolucion");
+    const btnRegistrarDevolucion = document.getElementById("btnRegistrarDevolucion");
+
+    if (!btnRegistrarDevolucion) return;
+
+    detalleSeleccionado = null;
+
+    const hoy = new Date().toISOString().split("T")[0];
+    fechaDevolucion.max = hoy;
+    fechaDevolucion.value = hoy;
+
+    function limpiarFormulario() {
+        detalleSeleccionado = null;
+        equipoCodigo.value = "";
+        fechaDevolucion.value = hoy;
+        estadoDisponible.checked = true;
+        if (observaciones) {
+            observaciones.value = "";
+            const contador = document.getElementById("c2");
+            if (contador) contador.innerText = "0";
+        }
+    }
+
+    function seleccionarPorCodigo(codigo) {
+        const encontrado = resolverPorCodigo(codigo);
+        if (encontrado) {
+            detalleSeleccionado = encontrado;
+            equipoCodigo.value = encontrado.codInv;
+        } else {
+            detalleSeleccionado = null;
+        }
+        return encontrado;
+    }
+
+    function conectarBusquedaCodigo() {
+        equipoCodigo.addEventListener("change", () => {
+            seleccionarPorCodigo(equipoCodigo.value);
+        });
+    }
+
+    function conectarBuscadorManual() {
+        if (!btnBuscarManual) return;
+
+        btnBuscarManual.addEventListener("click", async (evento) => {
+            evento.preventDefault();
+
+            const opciones = {};
+            listaDetalles.forEach((detalle) => {
+                const herramienta = listaHerramientas.find((item) => item.idHerramienta === detalle.idHerramienta);
+                const nombre = herramienta ? herramienta.nombreHerramienta : "Equipo";
+                opciones[detalle.codInv] = `${nombre} - ${detalle.codInv}`;
+            });
+
+            const { value: codigoElegido } = await Swal.fire({
+                title: "Selecciona un equipo",
+                input: "select",
+                inputOptions: opciones,
+                inputPlaceholder: "Selecciona un equipo",
+                confirmButtonColor: "#28a745",
+            });
+
+            if (codigoElegido) {
+                seleccionarPorCodigo(codigoElegido);
+            }
+        });
+    }
+
+    async function registrarDevolucion() {
+        if (!detalleSeleccionado) {
+            Swal.fire({ icon: "warning", title: "Selecciona un equipo", text: "Escanea o busca el código del equipo a devolver." });
+            return;
+        }
+
+        if (!fechaDevolucion.value) {
+            Swal.fire({ icon: "warning", title: "Falta la fecha", text: "Selecciona la fecha de devolución." });
+            return;
+        }
+
+        const nombreEstadoElegido = estadoDanado.checked ? "DAÑADO" : "DISPONIBLE";
+        const estadoElegido = listaEstadosHerramienta.find((item) => item.nombreEstadoHerramienta === nombreEstadoElegido);
+
+        if (!estadoElegido) {
+            Swal.fire({ icon: "error", title: "No se pudo registrar la devolución", text: "No se encontró el estado del equipo." });
+            return;
+        }
+
+        const herramientaSeleccionada = listaHerramientas.find((item) => item.idHerramienta === detalleSeleccionado.idHerramienta);
+        const nombreEquipo = herramientaSeleccionada ? herramientaSeleccionada.nombreHerramienta : detalleSeleccionado.codInv;
+
+        const confirmacion = await Swal.fire({
+            icon: "question",
+            title: "¿Confirmar devolución?",
+            html: `Vas a registrar la devolución de <b>${nombreEquipo}</b> (${detalleSeleccionado.codInv}) como <b>${nombreEstadoElegido}</b>.`,
+            showCancelButton: true,
+            confirmButtonText: "Sí, registrar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#28a745",
+        });
+
+        if (!confirmacion.isConfirmed) {
+            return;
+        }
+
+        try {
+            await actualizarDetalleHerramienta(detalleSeleccionado.idDetalle, {
+                idHerramienta: detalleSeleccionado.idHerramienta,
+                idMarca: detalleSeleccionado.idMarca,
+                idEstadoHerramienta: estadoElegido.id,
+                codInv: detalleSeleccionado.codInv,
+            });
+
+            const estadoDevuelto = listaEstadosPrestamo.find((item) => item.nombreEstado === "DEVUELTO");
+            const detallePrestamo = listaDetallesPrestamo.find((item) => item.herramienta === detalleSeleccionado.idHerramienta);
+            const prestamoAsociado = detallePrestamo
+                ? listaPrestamos.find((item) => item.id === detallePrestamo.prestamo && !item.fechaDevolucion)
+                : null;
+
+            if (prestamoAsociado && estadoDevuelto) {
+                await actualizarPrestamo(prestamoAsociado.id, {
+                    usuario: prestamoAsociado.usuario,
+                    fechaInicio: prestamoAsociado.fechaInicio,
+                    fechaEsperada: prestamoAsociado.fechaEsperada,
+                    fechaDevolucion: fechaDevolucion.value,
+                    estado: estadoDevuelto.id,
+                });
+            }
+
+            Swal.fire({ icon: "success", title: "¡Devolución registrada!", confirmButtonColor: "#28a745" });
+            limpiarFormulario();
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: "error",
+                title: "No se pudo registrar la devolución",
+                text: "Ocurrió un error al conectar con el servidor. Intenta de nuevo.",
+                confirmButtonColor: "#dc3545",
+            });
+        }
+    }
+
+    if (observaciones) {
+        observaciones.addEventListener("input", () => {
+            const contador = document.getElementById("c2");
+            if (contador) contador.innerText = observaciones.value.length;
+        });
+    }
+
+    (async function cargarCatalogos() {
+        try {
+            listaDetalles = await obtenerDetallesHerramienta();
+            listaEstadosHerramienta = await obtenerEstadosHerramienta();
+            listaHerramientas = await obtenerHerramientas();
+            listaPrestamos = await obtenerPrestamos();
+            listaEstadosPrestamo = await obtenerEstadosPrestamo();
+            listaDetallesPrestamo = await obtenerDetallePrestamoHerramientas();
+
+            if (equipoCodigo.value) {
+                seleccionarPorCodigo(equipoCodigo.value);
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: "error", title: "No se pudieron cargar los catálogos", text: "Revisa tu conexión con el servidor." });
+        }
+    })();
+
+    conectarBusquedaCodigo();
+    conectarBuscadorManual();
+    btnRegistrarDevolucion.addEventListener("click", registrarDevolucion);
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPTEC - Sistema de Préstamo e Inventario</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="shortcut icon" href="../img/LogoSIPTEC.png" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <div class="marco-movil">
+        <div class="pantalla-app">
+            <div id="viewRoot" class="contenido"></div>
+
+            <div class="overlay-modal oculto" id="modalGenerarReporte">
+                <div class="tarjeta-modal">
+                    <div class="encabezado-modal">
+                        <h2>Generar reporte</h2>
+                        <button type="button" class="cerrar-modal" id="btnCerrarModalReporte"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="subtitulo-modal">Elige el tipo y el rango de fechas a consultar.</div>
+
+                    <label class="etiqueta-campo" for="modalTipoReporte">Tipo de reporte</label>
+                    <select class="campo-tipo-reporte" id="modalTipoReporte">
+                        <option value="activos">Préstamos activos</option>
+                        <option value="historial">Historial de préstamos</option>
+                        <option value="devoluciones">Devoluciones</option>
+                        <option value="danados">Equipos con daño</option>
+                    </select>
+
+                    <label class="etiqueta-campo">Rango de fechas</label>
+                    <div class="rango-fechas">
+                        <input type="date" class="campo-fecha" id="modalFechaInicio">
+                        <span style="font-size:10px;">a</span>
+                        <input type="date" class="campo-fecha" id="modalFechaFin">
+                    </div>
+
+                    <button class="boton-accion-gris" id="btnGenerarReporteModal">Generar reporte</button>
+
+                    <div id="modalResultadosReporte" class="resultados-modal-reporte oculto"></div>
+                </div>
+            </div>
+
+            <div class="overlay-modal overlay-lateral oculto" id="panelPerfil">
+                <div class="panel-lateral-perfil">
+                    <div class="encabezado-modal">
+                        <h2>Mi cuenta</h2>
+                        <button type="button" class="cerrar-modal" id="btnCerrarPerfil"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div class="tarjeta-perfil">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <div>
+                            <div class="nombre-perfil-grande" id="nombreUsuarioPerfil">-</div>
+                            <div class="correo-perfil" id="correoUsuarioPerfil"></div>
+                        </div>
+                    </div>
+
+                    <button class="boton-accion-gris" id="btnCerrarSesion"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+                </div>
+            </div>
+
+            <nav class="nav-inferior">
+                <button id="btnNavInicio" class="item-nav">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Inicio</span>
+                </button>
+                <button id="btnNavPrestamos" class="item-nav">
+                    <i class="fa-solid fa-right-left"></i>
+                    <span>Préstamos</span>
+                </button>
+                <button id="btnNavReportes" class="item-nav">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>Reportes</span>
+                </button>
+                <button id="btnNavDevolucion" class="item-nav">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Devolución</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <script type="module" src="../js/loadViews.js"></script>
+</body>
+</html>

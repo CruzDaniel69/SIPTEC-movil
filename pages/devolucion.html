@@ -1,0 +1,47 @@
+<div class="encabezado">
+    <h1>Registro de devolución</h1>
+    <button type="button" class="boton-perfil-topbar" id="btnAbrirPerfil">
+        <span class="nombre-perfil-topbar" id="nombreUsuarioTopbar"></span>
+        <i class="fa-solid fa-circle-user"></i>
+    </button>
+</div>
+<div class="subtitulo-encabezado">Registra la devolución de un equipo</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">1. Seleccionar equipo</div>
+    <div class="caja-buscador">
+        <input type="text" id="equipoCodigo" placeholder="Escanea el codigo del equipo">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+    <a class="enlace-azul-centrado" id="btnBuscarManual">Buscar manualmente</a>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">2. Fecha de devolución</div>
+    <input type="date" class="campo-fecha" id="fechaDevolucion" style="width:100%;" required>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">3. Estado del equipo</div>
+    <div class="grupo-radio" id="estadoEquipoGroup">
+        <label class="item-radio">
+            <input type="radio" name="estadoEquipo" id="estadoDisponible" value="DISPONIBLE" checked>
+            <span class="circulo-radio"></span>
+            En buen estado
+        </label>
+        <label class="item-radio">
+            <input type="radio" name="estadoEquipo" id="estadoDanado" value="DAÑADO">
+            <span class="circulo-radio"></span>
+            Con daño
+        </label>
+    </div>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">4. Observaciones (opcional)</div>
+    <textarea class="caja-area-texto" placeholder="Escribe observaciones..." maxlength="150"
+        oninput="document.getElementById('c2').innerText = this.value.length"></textarea>
+    <div class="contador-caracteres"><span id="c2">0</span>/150</div>
+</div>
+
+<button class="boton-accion-verde" id="btnRegistrarDevolucion">Registrar devolución</button>

@@ -1,0 +1,44 @@
+<div class="encabezado">
+    <h1>Reportes</h1>
+    <button type="button" class="boton-perfil-topbar" id="btnAbrirPerfil">
+        <span class="nombre-perfil-topbar" id="nombreUsuarioTopbar"></span>
+        <i class="fa-solid fa-circle-user"></i>
+    </button>
+</div>
+<div class="subtitulo-encabezado">Consulta o genera reportes del sistema.</div>
+
+<div class="titulo-tarjeta" style="margin-bottom:6px;">Consulta rápida</div>
+
+<button type="button" class="tarjeta-seleccion-reporte" data-ver-reporte="activos">
+    <div>
+        <div class="title">Préstamos activos</div>
+        <div class="desc">Equipos actualmente prestados</div>
+    </div>
+    <i class="fa-solid fa-arrow-right"></i>
+</button>
+
+<button type="button" class="tarjeta-seleccion-reporte" data-ver-reporte="historial">
+    <div>
+        <div class="title">Historial de préstamos</div>
+        <div class="desc">Todos los préstamos realizados</div>
+    </div>
+    <i class="fa-solid fa-arrow-right"></i>
+</button>
+
+<button type="button" class="tarjeta-seleccion-reporte" data-ver-reporte="devoluciones">
+    <div>
+        <div class="title">Devoluciones</div>
+        <div class="desc">Historial de devoluciones</div>
+    </div>
+    <i class="fa-solid fa-arrow-right"></i>
+</button>
+
+<button type="button" class="tarjeta-seleccion-reporte" data-ver-reporte="danados" style="margin-bottom:14px;">
+    <div>
+        <div class="title">Equipos con daño</div>
+        <div class="desc">Equipos reportados con daño</div>
+    </div>
+    <i class="fa-solid fa-arrow-right"></i>
+</button>
+
+<button class="boton-accion-gris" id="btnGenerarReporte">Generar reporte con filtros</button>

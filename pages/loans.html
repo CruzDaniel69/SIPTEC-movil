@@ -1,0 +1,65 @@
+<div class="encabezado">
+    <h1>Nuevo préstamo</h1>
+    <button type="button" class="boton-perfil-topbar" id="btnAbrirPerfil">
+        <span class="nombre-perfil-topbar" id="nombreUsuarioTopbar"></span>
+        <i class="fa-solid fa-circle-user"></i>
+    </button>
+</div>
+<div class="subtitulo-encabezado">Registra un nuevo préstamo de equipo.</div>
+
+<input type="radio" name="tipoSolicitud" id="tipoHerramienta" checked>
+<input type="radio" name="tipoSolicitud" id="tipoArea">
+
+<div class="interruptor-tipo">
+    <label for="tipoHerramienta">Herramienta</label>
+    <label for="tipoArea">Área</label>
+</div>
+
+<div class="caja-tarjeta seccion-herramienta">
+    <div class="titulo-tarjeta">1. Seleccionar equipo</div>
+    <div class="caja-buscador">
+        <input type="text" id="buscarHerramienta" placeholder="Escanea o busca el equipo">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+    <input type="hidden" id="idHerramientaSeleccionada">
+    <small id="avisoHerramienta" style="display:block; margin-top:4px; font-size:9px; color:var(--ink-soft);"></small>
+    <a class="enlace-azul-centrado" onclick="loadView('agregar-implemento')">¿No encuentras el equipo? Agrégalo</a>
+
+    <label style="display:block; margin-top:12px; margin-bottom:6px; font-size:10px; font-weight:700; color:var(--ink-soft); text-transform:uppercase;">
+        Cantidad a solicitar
+    </label>
+    <input type="number" class="campo-simple" id="cantidadSolicitada" min="1" value="1"
+        style="border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px;">
+</div>
+
+<div class="caja-tarjeta seccion-area">
+    <div class="titulo-tarjeta">1. Seleccionar área</div>
+    <div class="caja-buscador">
+        <input type="text" id="buscarArea" list="listaAreasDatalist" placeholder="Busca el área (ej. Laboratorio 1)">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+    <datalist id="listaAreasDatalist"></datalist>
+    <input type="hidden" id="idAreaSeleccionada">
+    <small id="avisoArea" style="display:block; margin-top:4px; font-size:9px; color:var(--ink-soft);"></small>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">2. Fecha del préstamo</div>
+    <div class="rango-fechas">
+        <input type="date" class="campo-fecha" id="fechaInicio" required>
+        <span>a</span>
+        <input type="date" class="campo-fecha" id="fechaEsperada" required>
+    </div>
+    <small style="display:block; margin-top:6px; font-size:9px; color:var(--ink-soft);">
+        La fecha de devolución esperada no puede ser mayor a 1 mes desde el inicio.
+    </small>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">3. Observaciones (opcional)</div>
+    <textarea class="caja-area-texto" placeholder="Escribe observaciones..." maxlength="150"
+        oninput="document.getElementById('c1').innerText = this.value.length"></textarea>
+    <div class="contador-caracteres"><span id="c1">0</span>/150</div>
+</div>
+
+<button class="boton-accion-azulmarino" id="btnRegistrarPrestamo">Registrar préstamos</button>
