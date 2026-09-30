@@ -4,6 +4,7 @@ import { obtenerHerramientas } from "../services/herramientaService.js";
 import { obtenerPrestamos, actualizarPrestamo } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
+import { puedeGestionar } from "../utils/rol.js";
 
 let listaDetalles = [];
 let listaEstadosHerramienta = [];
@@ -29,6 +30,13 @@ export function initDevolucionController() {
     const btnRegistrarDevolucion = document.getElementById("btnRegistrarDevolucion");
 
     if (!btnRegistrarDevolucion) return;
+
+    if (!puedeGestionar(["ADMINISTRADOR", "IT"])) {
+        btnRegistrarDevolucion.disabled = true;
+        btnRegistrarDevolucion.textContent = "Solo un administrador o IT puede registrar devoluciones";
+        equipoCodigo.disabled = true;
+        if (btnBuscarManual) btnBuscarManual.classList.add("oculto");
+    }
 
     detalleSeleccionado = null;
 
@@ -93,6 +101,11 @@ export function initDevolucionController() {
     }
 
     async function registrarDevolucion() {
+        if (!puedeGestionar(["ADMINISTRADOR", "IT"])) {
+            Swal.fire({ icon: "warning", title: "Acción no permitida", text: "Tu rol no tiene permiso para registrar devoluciones." });
+            return;
+        }
+
         if (!detalleSeleccionado) {
             Swal.fire({ icon: "warning", title: "Selecciona un equipo", text: "Escanea o busca el código del equipo a devolver." });
             return;

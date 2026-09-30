@@ -160,15 +160,20 @@ export function initModalGenerarReporte() {
 
     const btnCerrar = document.getElementById("btnCerrarModalReporte");
     const btnGenerar = document.getElementById("btnGenerarReporteModal");
-    const selectTipo = document.getElementById("modalTipoReporte");
+    const btnExportar = document.getElementById("btnExportarReporteModal");
+    const checksTipo = document.querySelectorAll('input[name="modalTipoReporte"]');
     const fechaInicio = document.getElementById("modalFechaInicio");
     const fechaFin = document.getElementById("modalFechaFin");
     const resultados = document.getElementById("modalResultadosReporte");
+
+    let documentoGenerado = "";
 
     function abrirModal() {
         modal.classList.remove("oculto");
         resultados.classList.add("oculto");
         resultados.innerHTML = "";
+        if (btnExportar) btnExportar.classList.add("oculto");
+        documentoGenerado = "";
     }
 
     function cerrarModal() {
@@ -189,11 +194,17 @@ export function initModalGenerarReporte() {
 
     if (btnGenerar) {
         btnGenerar.addEventListener("click", async () => {
-            const tipo = selectTipo.value;
+            const tiposElegidos = Array.from(checksTipo).filter((check) => check.checked).map((check) => check.value);
             const inicio = fechaInicio.value;
             const fin = fechaFin.value;
 
-            if (tipo !== "danados" && (!inicio || !fin)) {
+            if (tiposElegidos.length === 0) {
+                Swal.fire({ icon: "warning", title: "Selecciona al menos un reporte", text: "Marca uno o varios tipos de reporte a generar." });
+                return;
+            }
+
+            const necesitaFechas = tiposElegidos.some((tipo) => tipo !== "danados");
+            if (necesitaFechas && (!inicio || !fin)) {
                 Swal.fire({ icon: "warning", title: "Selecciona el rango de fechas", text: "Elige la fecha de inicio y la fecha final del reporte." });
                 return;
             }
@@ -203,14 +214,32 @@ export function initModalGenerarReporte() {
             }
 
             try {
-                const info = TITULOS_REPORTE[tipo];
-                const filas = await construirDatosReporte(tipo, inicio, fin);
+                const secciones = await Promise.all(tiposElegidos.map(async (tipo) => {
+                    const info = TITULOS_REPORTE[tipo];
+                    const filas = await construirDatosReporte(tipo, inicio, fin);
+                    return { titulo: info.titulo, filas, vacio: info.vacio };
+                }));
+
                 resultados.classList.remove("oculto");
-                pintarFilas(resultados, filas, info.vacio);
+                pintarSeccionesReporte(resultados, secciones);
+
+                documentoGenerado = secciones
+                    .map(({ titulo, filas, vacio }) => filasATexto(titulo, filas, vacio))
+                    .join("\n");
+
+                if (btnExportar) btnExportar.classList.remove("oculto");
             } catch (error) {
                 console.error(error);
                 Swal.fire({ icon: "error", title: "No se pudo generar el reporte", text: "Ocurrió un error al conectar con el servidor. Intenta de nuevo.", confirmButtonColor: "#dc3545" });
             }
+        });
+    }
+
+    if (btnExportar) {
+        btnExportar.addEventListener("click", () => {
+            if (!documentoGenerado) return;
+            const encabezado = `Reporte SIPTEC — generado el ${formatearFecha(new Date().toISOString().split("T")[0])}\n\n`;
+            descargarArchivo("reporte-siptec.txt", encabezado + documentoGenerado, "text/plain");
         });
     }
 }

@@ -14,14 +14,19 @@ const btnNavDevolucion = document.getElementById("btnNavDevolucion");
 
 const botonesNav = [btnNavInicio, btnNavPrestamos, btnNavReportes, btnNavDevolucion];
 
+const ROL_ACTUAL = (localStorage.getItem("siptec-role") || "EMPLEADO").toUpperCase();
+const ES_ADMIN_O_IT = ROL_ACTUAL === "ADMINISTRADOR" || ROL_ACTUAL === "IT";
+
+if (!ES_ADMIN_O_IT && btnNavDevolucion) {
+    btnNavDevolucion.classList.add("oculto");
+}
+
 
 async function loadView(viewName, checkId, fillId, fillValue) {
     if (!viewRoot) return;
 
     try {
-        const rol = (localStorage.getItem("siptec-role") || "EMPLEADO").toUpperCase();
-        const esAdminOIT = rol === "ADMINISTRADOR" || rol === "IT";
-        const archivoReal = (viewName === "loans" && esAdminOIT) ? "aprobar-prestamos" : viewName;
+        const archivoReal = (viewName === "loans" && ES_ADMIN_O_IT) ? "aprobar-prestamos" : viewName;
 
         const respuesta = await fetch(`${archivoReal}.html?t=${Date.now()}`);
 
