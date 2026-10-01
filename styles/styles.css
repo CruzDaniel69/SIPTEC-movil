@@ -909,6 +909,11 @@
             gap: 8px;
         }
 
+        .campo-fecha.fecha-invalida {
+            color: var(--red, #dc3545);
+            border-color: var(--red, #dc3545);
+        }
+
         .campo-fecha {
             flex: 1;
             border: 1px solid var(--line);

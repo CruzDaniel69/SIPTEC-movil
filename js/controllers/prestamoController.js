@@ -11,6 +11,8 @@ let listaAreas = [];
 let listaEstados = [];
 let listaTiposArea = [];
 
+const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
+
 function obtenerIdUsuarioActual() {
     return Number(localStorage.getItem("siptec-usuario-id")) || 1;
 }
@@ -69,6 +71,7 @@ export function initPrestamoController() {
         avisoArea.textContent = "";
         fechaInicio.value = "";
         fechaEsperada.value = "";
+        fechaEsperada.classList.remove("fecha-invalida");
         if (observaciones) {
             observaciones.value = "";
             const contador = document.getElementById("c1");
@@ -229,6 +232,12 @@ export function initPrestamoController() {
                 return;
             }
 
+            if (!patronTexto.test(textoBuscado)) {
+                idAreaSeleccionada.value = "";
+                avisoArea.textContent = "El nombre de la ubicación tiene símbolos no permitidos.";
+                return;
+            }
+
             try {
                 const areaCreada = await crearAreaNueva(textoBuscado);
                 if (areaCreada) {
@@ -247,10 +256,22 @@ export function initPrestamoController() {
         });
     }
 
+    function validarFechasEnVivo() {
+        if (!fechaInicio.value || !fechaEsperada.value) {
+            fechaEsperada.classList.remove("fecha-invalida");
+            return;
+        }
+
+        const resultado = fechasSonValidas(fechaInicio.value, fechaEsperada.value);
+        fechaEsperada.classList.toggle("fecha-invalida", !resultado.valido);
+    }
+
     function conectarFechas() {
         fechaInicio.addEventListener("change", () => {
             fechaEsperada.min = fechaInicio.value;
+            validarFechasEnVivo();
         });
+        fechaEsperada.addEventListener("change", validarFechasEnVivo);
     }
 
     if (observaciones) {

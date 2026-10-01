@@ -12,22 +12,21 @@ let listaCategorias = [];
 export function initImplementoController() {
     const nombreEquipo = document.getElementById("nombreEquipo");
     const codigoInventario = document.getElementById("codigoInventario");
-    const marcaTexto = document.getElementById("marcaTexto");
-    const categoriaTexto = document.getElementById("categoriaTexto");
-    const listaMarcasDatalist = document.getElementById("listaMarcas");
-    const listaCategoriasDatalist = document.getElementById("listaCategorias");
+    const marcaSelect = document.getElementById("marcaTexto");
+    const categoriaSelect = document.getElementById("categoriaTexto");
     const descripcionEquipo = document.getElementById("descripcionEquipo");
     const btnGuardarImplemento = document.getElementById("btnGuardarImplemento");
 
     if (!btnGuardarImplemento) return;
 
     const patronCodigo = /^[A-Za-z0-9-]+$/;
+    const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
 
     function limpiarFormulario() {
         nombreEquipo.value = "";
         codigoInventario.value = "";
-        marcaTexto.value = "";
-        categoriaTexto.value = "";
+        poblarSelect(marcaSelect, listaMarcas, "nombreMarca", "");
+        poblarSelect(categoriaSelect, listaCategorias, "nombreCategoria", "");
         if (descripcionEquipo) {
             descripcionEquipo.value = "";
             const contador = document.getElementById("c3");
@@ -35,40 +34,84 @@ export function initImplementoController() {
         }
     }
 
+    function poblarSelect(select, lista, campoNombre, valorSeleccionado) {
+        if (!select) return;
+        const opciones = lista.map((item) =>
+            `<option value="${item.id}" ${String(item.id) === String(valorSeleccionado) ? "selected" : ""}>${item[campoNombre]}</option>`
+        ).join("");
+        select.innerHTML = '<option value="" disabled' + (valorSeleccionado ? "" : " selected") + '>Selecciona una opción</option>' +
+            opciones +
+            '<option value="__nuevo__">+ Agregar nueva opción</option>';
+    }
+
+    async function manejarAgregarNuevaOpcion(titulo, placeholder, crear) {
+        const { value: nombre } = await Swal.fire({
+            title: titulo,
+            input: "text",
+            inputPlaceholder: placeholder,
+            showCancelButton: true,
+            confirmButtonText: "Agregar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#8a4fd6",
+            inputValidator: (value) => {
+                const texto = (value || "").trim();
+                if (!texto) return "Escribe un nombre.";
+                if (!patronTexto.test(texto)) return "Ese nombre tiene símbolos no permitidos.";
+                return null;
+            },
+        });
+
+        if (!nombre) return null;
+
+        try {
+            return await crear(nombre.trim());
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: "error", title: "No se pudo agregar", text: "Ocurrió un error al conectar con el servidor." });
+            return null;
+        }
+    }
+
+    marcaSelect.addEventListener("change", async () => {
+        if (marcaSelect.value !== "__nuevo__") return;
+        const creada = await manejarAgregarNuevaOpcion("Nueva marca", "Nombre de la marca", async (nombre) => {
+            const creada = await agregarMarca({ nombreMarca: nombre });
+            listaMarcas.push(creada);
+            return creada;
+        });
+        poblarSelect(marcaSelect, listaMarcas, "nombreMarca", creada ? creada.id : "");
+    });
+
+    categoriaSelect.addEventListener("change", async () => {
+        if (categoriaSelect.value !== "__nuevo__") return;
+        const creada = await manejarAgregarNuevaOpcion("Nueva categoría", "Nombre de la categoría", async (nombre) => {
+            const creada = await agregarCategoria({ nombreCategoria: nombre });
+            listaCategorias.push(creada);
+            return creada;
+        });
+        poblarSelect(categoriaSelect, listaCategorias, "nombreCategoria", creada ? creada.id : "");
+    });
+
     function validarFormulario() {
         if (!nombreEquipo.value.trim()) {
             return { valido: false, mensaje: "Escribe el nombre del equipo." };
         }
+        if (!patronTexto.test(nombreEquipo.value.trim())) {
+            return { valido: false, mensaje: "El nombre del equipo tiene símbolos no permitidos." };
+        }
         if (!codigoInventario.value.trim() || !patronCodigo.test(codigoInventario.value.trim())) {
             return { valido: false, mensaje: "El código de inventario solo admite letras, números y guiones." };
         }
-        if (!marcaTexto.value.trim()) {
-            return { valido: false, mensaje: "Escribe una marca." };
+        if (!marcaSelect.value || marcaSelect.value === "__nuevo__") {
+            return { valido: false, mensaje: "Selecciona una marca." };
         }
-        if (!categoriaTexto.value.trim()) {
-            return { valido: false, mensaje: "Escribe una categoría." };
+        if (!categoriaSelect.value || categoriaSelect.value === "__nuevo__") {
+            return { valido: false, mensaje: "Selecciona una categoría." };
+        }
+        if (descripcionEquipo && descripcionEquipo.value.trim() && !patronTexto.test(descripcionEquipo.value.trim())) {
+            return { valido: false, mensaje: "La descripción tiene símbolos no permitidos." };
         }
         return { valido: true };
-    }
-
-    async function obtenerOCrearMarca(nombre) {
-        const nombreNormalizado = nombre.trim();
-        const existente = listaMarcas.find((item) => item.nombreMarca.toLowerCase() === nombreNormalizado.toLowerCase());
-        if (existente) return existente.id;
-
-        const creada = await agregarMarca({ nombreMarca: nombreNormalizado });
-        listaMarcas.push(creada);
-        return creada.id;
-    }
-
-    async function obtenerOCrearCategoria(nombre) {
-        const nombreNormalizado = nombre.trim();
-        const existente = listaCategorias.find((item) => item.nombreCategoria.toLowerCase() === nombreNormalizado.toLowerCase());
-        if (existente) return existente.id;
-
-        const creada = await agregarCategoria({ nombreCategoria: nombreNormalizado });
-        listaCategorias.push(creada);
-        return creada.id;
     }
 
     async function guardarImplemento() {
@@ -85,11 +128,6 @@ export function initImplementoController() {
         }
 
         try {
-            const [idMarca, idCategoria] = await Promise.all([
-                obtenerOCrearMarca(marcaTexto.value),
-                obtenerOCrearCategoria(categoriaTexto.value),
-            ]);
-
             const nuevaHerramienta = await agregarHerramienta({
                 nombreHerramienta: nombreEquipo.value.trim(),
                 descripcionHerramienta: descripcionEquipo.value.trim(),
@@ -98,13 +136,13 @@ export function initImplementoController() {
 
             await agregarDetalleHerramienta({
                 idHerramienta: nuevaHerramienta.idHerramienta,
-                idMarca: idMarca,
+                idMarca: Number(marcaSelect.value),
                 idEstadoHerramienta: estadoDisponible.id,
                 codInv: codigoInventario.value.trim(),
             });
 
             await agregarHerramientaCategoria({
-                idCategoria: idCategoria,
+                idCategoria: Number(categoriaSelect.value),
                 idHerramienta: nuevaHerramienta.idHerramienta,
             });
 
@@ -146,17 +184,8 @@ export function initImplementoController() {
             listaMarcas = marcas;
             listaCategorias = categorias;
 
-            marcas.forEach((marca) => {
-                const opcion = document.createElement("option");
-                opcion.value = marca.nombreMarca;
-                listaMarcasDatalist.appendChild(opcion);
-            });
-
-            categorias.forEach((categoria) => {
-                const opcion = document.createElement("option");
-                opcion.value = categoria.nombreCategoria;
-                listaCategoriasDatalist.appendChild(opcion);
-            });
+            poblarSelect(marcaSelect, listaMarcas, "nombreMarca", "");
+            poblarSelect(categoriaSelect, listaCategorias, "nombreCategoria", "");
 
         } catch (error) {
             console.error(error);
