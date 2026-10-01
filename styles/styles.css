@@ -381,6 +381,10 @@
             gap: 7px;
         }
 
+        .cuadricula-4.dos-columnas {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
         .cuadricula-2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);

@@ -4,6 +4,7 @@ import { obtenerPrestamos } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
 import { obtenerHerramientas } from "../services/herramientaService.js";
+import { puedeGestionar } from "../utils/rol.js";
 
 function calcularEstadoFecha(fechaEsperada) {
     const hoy = new Date();
@@ -30,6 +31,15 @@ export function initDashboardController() {
     const listaPrestamosActivos = document.getElementById("listaPrestamosActivos");
 
     if (!statPrestados) return;
+
+    if (!puedeGestionar(["ADMINISTRADOR", "IT"])) {
+        const accionDevolucion = document.getElementById("accionRegistrarDevolucion");
+        const accionReportarDanio = document.getElementById("accionReportarDanio");
+        const cuadriculaAccesos = document.getElementById("cuadriculaAccesosRapidos");
+        if (accionDevolucion) accionDevolucion.classList.add("oculto");
+        if (accionReportarDanio) accionReportarDanio.classList.add("oculto");
+        if (cuadriculaAccesos) cuadriculaAccesos.classList.add("dos-columnas");
+    }
 
     (async function cargarResumen() {
         try {

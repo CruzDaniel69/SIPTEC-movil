@@ -35,12 +35,12 @@
 
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">Accesos rápidos</div>
-    <div class="cuadricula-4">
+    <div class="cuadricula-4" id="cuadriculaAccesosRapidos">
         <button class="tarjeta-accion text-blue" onclick="loadView('loans')">
             <i class="fa-solid fa-circle-plus"></i>
             Nuevo préstamo
         </button>
-        <button class="tarjeta-accion text-green" onclick="loadView('devolucion')">
+        <button class="tarjeta-accion text-green" id="accionRegistrarDevolucion" onclick="loadView('devolucion')">
             <i class="fa-solid fa-rotate-left"></i>
             Registrar devolución
         </button>
@@ -48,7 +48,7 @@
             <i class="fa-solid fa-box"></i>
             Agregar implemento
         </button>
-        <button class="tarjeta-accion text-orange" onclick="loadView('devolucion', 'estadoDanado')">
+        <button class="tarjeta-accion text-orange" id="accionReportarDanio" onclick="loadView('devolucion', 'estadoDanado')">
             <i class="fa-solid fa-triangle-exclamation"></i>
             Reportar daño
         </button>
