@@ -14,7 +14,18 @@
 
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">2. Código de inventario</div>
-    <input type="text" id="codigoInventario" placeholder="Ej. TAL-002" class="campo-simple" required>
+    <div style="display:flex; gap:8px;">
+        <select id="prefijoCodigo" class="campo-simple" style="flex:0 0 30%;">
+            <option value="EQ" selected>EQ</option>
+            <option value="HE">HE</option>
+            <option value="TAL">TAL</option>
+            <option value="LAB">LAB</option>
+        </select>
+        <input type="number" id="numeroCodigo" min="1" step="1" placeholder="Número (ej. 21)" class="campo-simple" required>
+    </div>
+    <label style="display:block; margin-top:10px; margin-bottom:6px; font-size:10px; font-weight:700; color:var(--ink-soft); text-transform:uppercase;">Piezas</label>
+    <input type="number" id="cantidadPiezas" min="1" max="50" step="1" value="1" class="campo-simple" required>
+    <small id="vistaPreviaCodigos" style="display:block; margin-top:4px; font-size:9px; color:var(--ink-soft);">Se creará un código por cada pieza (ej. EQ-21, EQ-22…).</small>
 </div>
 
 <div class="caja-tarjeta">

@@ -149,13 +149,28 @@ export function initDevolucionController() {
                 codInv: detalleSeleccionado.codInv,
             });
 
-            const estadoDevuelto = listaEstadosPrestamo.find((item) => item.nombreEstado === "DEVUELTO");
-            const detallePrestamo = listaDetallesPrestamo.find((item) => item.herramienta === detalleSeleccionado.idHerramienta);
-            const prestamoAsociado = detallePrestamo
-                ? listaPrestamos.find((item) => item.id === detallePrestamo.prestamo && !item.fechaDevolucion)
-                : null;
+            listaDetalles = await obtenerDetallesHerramienta();
 
-            if (prestamoAsociado && estadoDevuelto) {
+            const estadoDevuelto = listaEstadosPrestamo.find((item) => item.nombreEstado === "DEVUELTO");
+            const idEnPrestamo = (listaEstadosHerramienta.find((item) => item.nombreEstadoHerramienta === "EN PRESTAMO") || {}).id;
+
+            const lineaPrestamo = listaDetallesPrestamo.find((item) => item.detalleHerramienta === detalleSeleccionado.idDetalle
+                && listaPrestamos.some((p) => p.id === item.prestamo && !p.fechaDevolucion))
+                || listaDetallesPrestamo.find((item) => !item.detalleHerramienta && item.herramienta === detalleSeleccionado.idHerramienta
+                    && listaPrestamos.some((p) => p.id === item.prestamo && !p.fechaDevolucion));
+            const prestamoAsociado = lineaPrestamo ? listaPrestamos.find((item) => item.id === lineaPrestamo.prestamo) : null;
+
+            let piezasPendientes = 0;
+            if (prestamoAsociado) {
+                piezasPendientes = listaDetallesPrestamo
+                    .filter((item) => item.prestamo === prestamoAsociado.id && item.detalleHerramienta && item.detalleHerramienta !== detalleSeleccionado.idDetalle)
+                    .filter((item) => {
+                        const pieza = listaDetalles.find((d) => d.idDetalle === item.detalleHerramienta);
+                        return pieza && pieza.idEstadoHerramienta === idEnPrestamo;
+                    }).length;
+            }
+
+            if (prestamoAsociado && estadoDevuelto && piezasPendientes === 0) {
                 await actualizarPrestamo(prestamoAsociado.id, {
                     usuario: prestamoAsociado.usuario,
                     fechaInicio: prestamoAsociado.fechaInicio,
@@ -165,7 +180,12 @@ export function initDevolucionController() {
                 });
             }
 
-            Swal.fire({ icon: "success", title: "¡Devolución registrada!", confirmButtonColor: "#28a745" });
+            Swal.fire({
+                icon: "success",
+                title: "¡Devolución registrada!",
+                text: piezasPendientes > 0 ? `Todavía quedan ${piezasPendientes} pieza(s) de este préstamo por devolver.` : undefined,
+                confirmButtonColor: "#28a745",
+            });
             limpiarFormulario();
 
         } catch (error) {

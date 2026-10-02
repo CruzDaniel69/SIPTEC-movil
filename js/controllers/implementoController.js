@@ -2,16 +2,20 @@ import { agregarHerramienta } from "../services/herramientaService.js";
 import { obtenerMarcas, agregarMarca } from "../services/marcaService.js";
 import { obtenerCategorias, agregarCategoria } from "../services/categoriaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
-import { agregarDetalleHerramienta } from "../services/detalleHerramientaService.js";
+import { obtenerDetallesHerramienta, agregarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { agregarHerramientaCategoria } from "../services/herramientaCategoriaService.js";
 
 let listaEstadosHerramienta = [];
 let listaMarcas = [];
 let listaCategorias = [];
+let listaDetalles = [];
 
 export function initImplementoController() {
     const nombreEquipo = document.getElementById("nombreEquipo");
-    const codigoInventario = document.getElementById("codigoInventario");
+    const prefijoCodigo = document.getElementById("prefijoCodigo");
+    const numeroCodigo = document.getElementById("numeroCodigo");
+    const cantidadPiezas = document.getElementById("cantidadPiezas");
+    const vistaPreviaCodigos = document.getElementById("vistaPreviaCodigos");
     const marcaSelect = document.getElementById("marcaTexto");
     const categoriaSelect = document.getElementById("categoriaTexto");
     const descripcionEquipo = document.getElementById("descripcionEquipo");
@@ -19,12 +23,47 @@ export function initImplementoController() {
 
     if (!btnGuardarImplemento) return;
 
-    const patronCodigo = /^[A-Za-z0-9-]+$/;
     const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
+
+    function generarCodigos() {
+        const numeroInicial = Number(numeroCodigo.value);
+        const piezas = Number(cantidadPiezas.value);
+        if (!Number.isInteger(numeroInicial) || numeroInicial < 1 || !Number.isInteger(piezas) || piezas < 1) return [];
+        return Array.from({ length: piezas }, (_, i) => `${prefijoCodigo.value}-${numeroInicial + i}`);
+    }
+
+    function codigosRepetidos(codigos) {
+        return codigos.filter((c) => listaDetalles.some((d) => (d.codInv || "").toUpperCase() === c.toUpperCase()));
+    }
+
+    function actualizarVistaPrevia() {
+        const codigos = generarCodigos();
+        if (codigos.length === 0) {
+            vistaPreviaCodigos.style.color = "var(--ink-soft)";
+            vistaPreviaCodigos.textContent = "Se creará un código por cada pieza (ej. EQ-21, EQ-22…).";
+            return;
+        }
+
+        const repetidos = codigosRepetidos(codigos);
+        if (repetidos.length > 0) {
+            vistaPreviaCodigos.style.color = "var(--red)";
+            vistaPreviaCodigos.textContent = "Ya existe: " + repetidos.join(", ");
+            return;
+        }
+
+        vistaPreviaCodigos.style.color = "var(--ink-soft)";
+        vistaPreviaCodigos.textContent = codigos.length === 1
+            ? "Se creará: " + codigos[0]
+            : `Se crearán ${codigos.length} piezas: ${codigos[0]} al ${codigos[codigos.length - 1]}`;
+    }
+
+    [prefijoCodigo, numeroCodigo, cantidadPiezas].forEach((campo) => campo.addEventListener("input", actualizarVistaPrevia));
 
     function limpiarFormulario() {
         nombreEquipo.value = "";
-        codigoInventario.value = "";
+        numeroCodigo.value = "";
+        cantidadPiezas.value = 1;
+        actualizarVistaPrevia();
         poblarSelect(marcaSelect, listaMarcas, "nombreMarca", "");
         poblarSelect(categoriaSelect, listaCategorias, "nombreCategoria", "");
         if (descripcionEquipo) {
@@ -99,8 +138,17 @@ export function initImplementoController() {
         if (!patronTexto.test(nombreEquipo.value.trim())) {
             return { valido: false, mensaje: "El nombre del equipo tiene símbolos no permitidos." };
         }
-        if (!codigoInventario.value.trim() || !patronCodigo.test(codigoInventario.value.trim())) {
-            return { valido: false, mensaje: "El código de inventario solo admite letras, números y guiones." };
+        const numeroInicial = Number(numeroCodigo.value);
+        if (!Number.isInteger(numeroInicial) || numeroInicial < 1) {
+            return { valido: false, mensaje: "El número del código debe ser un entero mayor a 0." };
+        }
+        const piezas = Number(cantidadPiezas.value);
+        if (!Number.isInteger(piezas) || piezas < 1 || piezas > 50) {
+            return { valido: false, mensaje: "Indica entre 1 y 50 piezas." };
+        }
+        const repetidos = codigosRepetidos(generarCodigos());
+        if (repetidos.length > 0) {
+            return { valido: false, mensaje: "Estos códigos ya existen: " + repetidos.join(", ") + ". Cambia el número inicial." };
         }
         if (!marcaSelect.value || marcaSelect.value === "__nuevo__") {
             return { valido: false, mensaje: "Selecciona una marca." };
@@ -131,15 +179,17 @@ export function initImplementoController() {
             const nuevaHerramienta = await agregarHerramienta({
                 nombreHerramienta: nombreEquipo.value.trim(),
                 descripcionHerramienta: descripcionEquipo.value.trim(),
-                stock: 1,
+                stock: Number(cantidadPiezas.value),
             });
 
-            await agregarDetalleHerramienta({
-                idHerramienta: nuevaHerramienta.idHerramienta,
-                idMarca: Number(marcaSelect.value),
-                idEstadoHerramienta: estadoDisponible.id,
-                codInv: codigoInventario.value.trim(),
-            });
+            for (const codigo of generarCodigos()) {
+                await agregarDetalleHerramienta({
+                    idHerramienta: nuevaHerramienta.idHerramienta,
+                    idMarca: Number(marcaSelect.value),
+                    idEstadoHerramienta: estadoDisponible.id,
+                    codInv: codigo,
+                });
+            }
 
             await agregarHerramientaCategoria({
                 idCategoria: Number(categoriaSelect.value),
@@ -174,13 +224,15 @@ export function initImplementoController() {
 
     (async function cargarCatalogos() {
         try {
-            const [marcas, categorias, estadosHerramienta] = await Promise.all([
+            const [marcas, categorias, estadosHerramienta, detalles] = await Promise.all([
                 obtenerMarcas(),
                 obtenerCategorias(),
                 obtenerEstadosHerramienta(),
+                obtenerDetallesHerramienta(),
             ]);
 
             listaEstadosHerramienta = estadosHerramienta;
+            listaDetalles = detalles || [];
             listaMarcas = marcas;
             listaCategorias = categorias;
 

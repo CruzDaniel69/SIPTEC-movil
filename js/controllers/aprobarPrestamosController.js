@@ -27,14 +27,21 @@ export async function initAprobarPrestamosController() {
 
     function construirFila(prestamo, herramientas, detallesHerramienta, areas, detallesArea, usuarios) {
         const usuario = usuarios.find((u) => u.id === prestamo.usuario);
-        const detalleHerramienta = detallesHerramienta.find((d) => d.prestamo === prestamo.id);
+        const detallesDelPrestamo = detallesHerramienta.filter((d) => d.prestamo === prestamo.id);
+        const detalleHerramienta = detallesDelPrestamo[0];
         const detalleArea = detallesArea.find((d) => d.prestamoIdPrestamo === prestamo.id);
 
         let recurso = "Préstamo #" + prestamo.id;
 
         if (detalleHerramienta) {
             const herramienta = herramientas.find((h) => h.idHerramienta === detalleHerramienta.herramienta);
-            recurso = (herramienta ? herramienta.nombreHerramienta : "Equipo") + ` (x${detalleHerramienta.cantidad})`;
+            const codigos = detallesDelPrestamo
+                .map((d) => (detallesFisicos.find((u) => u.idDetalle === d.detalleHerramienta) || {}).codInv)
+                .filter(Boolean);
+            const sufijo = codigos.length > 0
+                ? codigos.join(", ")
+                : "x" + detallesDelPrestamo.reduce((suma, d) => suma + (d.cantidad || 1), 0);
+            recurso = (herramienta ? herramienta.nombreHerramienta : "Equipo") + ` (${sufijo})`;
         } else if (detalleArea) {
             const area = areas.find((a) => a.id === detalleArea.areasIdArea);
             recurso = area ? area.nombreArea : "Área";
@@ -83,10 +90,14 @@ export async function initAprobarPrestamosController() {
             });
 
             if (nombreEstadoNuevo === "APROBADO") {
-                const detallePrestamo = detallesPrestamoHerramienta.find((d) => d.prestamo === idPrestamo);
-                if (detallePrestamo) {
-                    const detalleFisico = detallesFisicos.find((d) => d.idHerramienta === detallePrestamo.herramienta);
-                    const idEnPrestamo = (estadosHerramienta.find((e) => e.nombreEstadoHerramienta === "EN PRESTAMO") || {}).id;
+                const idEnPrestamo = (estadosHerramienta.find((e) => e.nombreEstadoHerramienta === "EN PRESTAMO") || {}).id;
+                const lineas = detallesPrestamoHerramienta.filter((d) => d.prestamo === idPrestamo);
+
+                for (const linea of lineas) {
+                    const detalleFisico = linea.detalleHerramienta
+                        ? detallesFisicos.find((d) => d.idDetalle === linea.detalleHerramienta)
+                        : detallesFisicos.find((d) => d.idHerramienta === linea.herramienta);
+
                     if (detalleFisico && idEnPrestamo) {
                         await actualizarDetalleHerramienta(detalleFisico.idDetalle, {
                             idHerramienta: detalleFisico.idHerramienta,

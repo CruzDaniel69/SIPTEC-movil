@@ -26,10 +26,11 @@
     <a class="enlace-azul-centrado" onclick="loadView('agregar-implemento')">¿No encuentras el equipo? Agrégalo</a>
 
     <label style="display:block; margin-top:12px; margin-bottom:6px; font-size:10px; font-weight:700; color:var(--ink-soft); text-transform:uppercase;">
-        Cantidad a solicitar
+        Piezas disponibles (marca las que necesitas)
     </label>
-    <input type="number" class="campo-simple" id="cantidadSolicitada" min="1" value="1"
-        style="border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px;">
+    <div id="listaUnidades" style="display:flex; flex-wrap:wrap; gap:6px;">
+        <small style="font-size:9px; color:var(--ink-soft);">Primero busca y selecciona un equipo.</small>
+    </div>
 </div>
 
 <div class="caja-tarjeta seccion-area">
