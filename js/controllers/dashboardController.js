@@ -4,7 +4,6 @@ import { obtenerPrestamos } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
 import { obtenerHerramientas } from "../services/herramientaService.js";
-import { puedeGestionar } from "../utils/rol.js";
 
 function calcularEstadoFecha(fechaEsperada) {
     const hoy = new Date();
@@ -32,14 +31,9 @@ export function initDashboardController() {
 
     if (!statPrestados) return;
 
-    if (!puedeGestionar(["ADMINISTRADOR", "IT"])) {
-        const accionDevolucion = document.getElementById("accionRegistrarDevolucion");
-        const accionReportarDanio = document.getElementById("accionReportarDanio");
-        const cuadriculaAccesos = document.getElementById("cuadriculaAccesosRapidos");
-        if (accionDevolucion) accionDevolucion.classList.add("oculto");
-        if (accionReportarDanio) accionReportarDanio.classList.add("oculto");
-        if (cuadriculaAccesos) cuadriculaAccesos.classList.add("dos-columnas");
-    }
+    const titulo = document.getElementById("tituloBienvenida");
+    const nombre = localStorage.getItem("siptec-usuario-nombre");
+    if (titulo && nombre) titulo.textContent = `¡Bienvenido, ${nombre}!`;
 
     (async function cargarResumen() {
         try {
@@ -102,11 +96,7 @@ export function initDashboardController() {
                                     <div class="fecha-elemento ${claseFecha}">${formatearFecha(prestamo.fechaEsperada)} <span class="punto punto-${claseFecha === "due-red" ? "rojo" : claseFecha === "due-yellow" ? "amarillo" : "verde"}"></span></div>
                                 </div>
                             `;
-                            if (puedeGestionar(["ADMINISTRADOR", "IT"])) {
-                                fila.addEventListener("click", () => loadView("devolucion"));
-                            } else {
-                                fila.style.cursor = "default";
-                            }
+                            fila.addEventListener("click", () => loadView("devolucion"));
                             listaPrestamosActivos.appendChild(fila);
                         });
                 }

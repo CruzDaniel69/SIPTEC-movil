@@ -1,6 +1,7 @@
 import { initPrestamoController } from "./controllers/prestamoController.js";
 import { initAprobarPrestamosController } from "./controllers/aprobarPrestamosController.js";
 import { initDashboardController } from "./controllers/dashboardController.js";
+import { initDashboardEmpleadoController } from "./controllers/dashboardEmpleadoController.js";
 import { initReportesController, initReporteDetalleController, initModalGenerarReporte } from "./controllers/reportesController.js";
 import { initDevolucionController } from "./controllers/devolucionController.js";
 import { initImplementoController } from "./controllers/implementoController.js";
@@ -25,8 +26,16 @@ if (!ES_ADMIN_O_IT && btnNavDevolucion) {
 async function loadView(viewName, checkId, fillId, fillValue) {
     if (!viewRoot) return;
 
+    if (!ES_ADMIN_O_IT && (viewName === "devolucion" || viewName === "agregar-implemento")) {
+        viewName = "dashboard";
+        checkId = undefined;
+        fillId = undefined;
+    }
+
     try {
-        const archivoReal = (viewName === "loans" && ES_ADMIN_O_IT) ? "aprobar-prestamos" : viewName;
+        let archivoReal = viewName;
+        if (viewName === "loans" && ES_ADMIN_O_IT) archivoReal = "aprobar-prestamos";
+        if (viewName === "dashboard" && !ES_ADMIN_O_IT) archivoReal = "dashboard-empleado";
 
         const respuesta = await fetch(`${archivoReal}.html?t=${Date.now()}`);
 
@@ -51,7 +60,11 @@ async function loadView(viewName, checkId, fillId, fillValue) {
         mostrarNombreUsuario();
 
         if (viewName === "dashboard") {
-            initDashboardController();
+            if (archivoReal === "dashboard-empleado") {
+                initDashboardEmpleadoController();
+            } else {
+                initDashboardController();
+            }
         } else if (viewName === "loans") {
             if (archivoReal === "aprobar-prestamos") {
                 initAprobarPrestamosController();

@@ -1,0 +1,49 @@
+<div class="encabezado">
+    <h1 id="tituloBienvenida">¡Bienvenido!</h1>
+    <button type="button" class="boton-perfil-topbar" id="btnAbrirPerfil">
+        <span class="nombre-perfil-topbar" id="nombreUsuarioTopbar"></span>
+        <i class="fa-solid fa-chevron-down"></i>
+    </button>
+</div>
+<div class="subtitulo-encabezado">Resumen de tus préstamos</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">Resumen rápido</div>
+    <div class="cuadricula-2">
+        <div class="tarjeta-estadistica fondo-azul">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span class="number" id="statMisActivos">0</span>
+            <span class="label">Préstamos activos</span>
+        </div>
+        <div class="tarjeta-estadistica fondo-naranja">
+            <i class="fa-solid fa-clock"></i>
+            <span class="number" id="statPorVencer">0</span>
+            <span class="label">Por vencer pronto</span>
+        </div>
+        <div class="tarjeta-estadistica fondo-morado" style="grid-column: 1 / -1;">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <span class="number" id="statMisPendientes">0</span>
+            <span class="label">Pendientes de aprobación</span>
+        </div>
+    </div>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">Accesos rápidos</div>
+    <div class="cuadricula-4 dos-columnas">
+        <button class="tarjeta-accion text-blue" onclick="loadView('loans')">
+            <i class="fa-solid fa-circle-plus"></i>
+            Solicitar préstamo
+        </button>
+        <button class="tarjeta-accion text-green" onclick="loadView('reports')">
+            <i class="fa-solid fa-file-lines"></i>
+            Ver reportes
+        </button>
+    </div>
+</div>
+
+<div class="caja-tarjeta">
+    <div class="titulo-tarjeta">Mis préstamos activos</div>
+
+    <div id="listaPrestamosActivos"></div>
+</div>
