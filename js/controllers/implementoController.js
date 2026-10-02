@@ -95,7 +95,7 @@ export function initImplementoController() {
             inputValidator: (value) => {
                 const texto = (value || "").trim();
                 if (!texto) return "Escribe un nombre.";
-                if (!patronTexto.test(texto)) return "Ese nombre tiene símbolos no permitidos.";
+                if (!patronTexto.test(texto)) return "Solo se permiten letras, números, espacios y los signos . , ( ) -";
                 return null;
             },
         });
@@ -136,7 +136,7 @@ export function initImplementoController() {
             return { valido: false, mensaje: "Escribe el nombre del equipo." };
         }
         if (!patronTexto.test(nombreEquipo.value.trim())) {
-            return { valido: false, mensaje: "El nombre del equipo tiene símbolos no permitidos." };
+            return { valido: false, mensaje: "El nombre del equipo solo admite letras, números, espacios y los signos . , ( ) -" };
         }
         const numeroInicial = Number(numeroCodigo.value);
         if (!Number.isInteger(numeroInicial) || numeroInicial < 1) {
@@ -157,7 +157,7 @@ export function initImplementoController() {
             return { valido: false, mensaje: "Selecciona una categoría." };
         }
         if (descripcionEquipo && descripcionEquipo.value.trim() && !patronTexto.test(descripcionEquipo.value.trim())) {
-            return { valido: false, mensaje: "La descripción tiene símbolos no permitidos." };
+            return { valido: false, mensaje: "La descripción solo admite letras, números, espacios y los signos . , ( ) -" };
         }
         return { valido: true };
     }

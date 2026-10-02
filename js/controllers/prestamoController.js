@@ -282,7 +282,7 @@ export function initPrestamoController() {
 
             if (!patronTexto.test(textoBuscado)) {
                 idAreaSeleccionada.value = "";
-                avisoArea.textContent = "El nombre de la ubicación tiene símbolos no permitidos.";
+                avisoArea.textContent = "La ubicación solo admite letras, números, espacios y los signos . , ( ) -";
                 return;
             }
 
