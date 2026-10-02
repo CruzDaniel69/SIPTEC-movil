@@ -102,7 +102,11 @@ export function initDashboardController() {
                                     <div class="fecha-elemento ${claseFecha}">${formatearFecha(prestamo.fechaEsperada)} <span class="punto punto-${claseFecha === "due-red" ? "rojo" : claseFecha === "due-yellow" ? "amarillo" : "verde"}"></span></div>
                                 </div>
                             `;
-                            fila.addEventListener("click", () => loadView("devolucion"));
+                            if (puedeGestionar(["ADMINISTRADOR", "IT"])) {
+                                fila.addEventListener("click", () => loadView("devolucion"));
+                            } else {
+                                fila.style.cursor = "default";
+                            }
                             listaPrestamosActivos.appendChild(fila);
                         });
                 }

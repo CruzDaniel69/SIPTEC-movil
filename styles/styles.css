@@ -268,7 +268,7 @@
         }
 
         .boton-perfil-topbar i {
-            font-size: 30px;
+            font-size: 11px;
             color: var(--ink-soft);
         }
 
@@ -305,11 +305,6 @@
             padding: 14px 0 22px;
             margin-bottom: 20px;
             border-bottom: 1px solid var(--line);
-        }
-
-        .tarjeta-perfil i {
-            font-size: 40px;
-            color: var(--ink-soft);
         }
 
         .nombre-perfil-grande {
