@@ -5,6 +5,9 @@ import { initDashboardEmpleadoController } from "./controllers/dashboardEmpleado
 import { initReportesController, initReporteDetalleController, initModalGenerarReporte } from "./controllers/reportesController.js";
 import { initDevolucionController } from "./controllers/devolucionController.js";
 import { initImplementoController } from "./controllers/implementoController.js";
+import { exigirSesion, cerrarSesionCompleta } from "./utils/sesion.js";
+
+exigirSesion("../index.html");
 
 const viewRoot = document.getElementById("viewRoot");
 const btnNavInicio = document.getElementById("btnNavInicio");
@@ -126,14 +129,7 @@ function initPanelPerfil() {
     });
 
     if (btnCerrarSesion) {
-        btnCerrarSesion.addEventListener("click", () => {
-            localStorage.removeItem("siptec-usuario-id");
-            localStorage.removeItem("siptec-usuario-nombre");
-            localStorage.removeItem("siptec-usuario-apellido");
-            localStorage.removeItem("siptec-usuario-correo");
-            localStorage.removeItem("siptec-role");
-            window.location.href = "../index.html";
-        });
+        btnCerrarSesion.addEventListener("click", () => cerrarSesionCompleta("../index.html"));
     }
 }
 
