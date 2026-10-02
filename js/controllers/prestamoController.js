@@ -5,11 +5,20 @@ import { obtenerTiposArea } from "../services/tipoAreaService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { agregarDetallePrestamoHerramienta } from "../services/detallePrestamoHerramientaService.js";
 import { agregarDetallePrestamoArea } from "../services/detallePrestamoAreaService.js";
+import { obtenerDetallesHerramienta } from "../services/detalleHerramientaService.js";
+import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
 
 let listaHerramientas = [];
 let listaAreas = [];
 let listaEstados = [];
 let listaTiposArea = [];
+let listaDetallesHerramienta = [];
+let listaEstadosHerramienta = [];
+
+function unidadesDisponibles(idHerramienta) {
+    const idEstadoDisponible = (listaEstadosHerramienta.find((e) => e.nombreEstadoHerramienta === "DISPONIBLE") || {}).id;
+    return listaDetallesHerramienta.filter((d) => d.idHerramienta === idHerramienta && d.idEstadoHerramienta === idEstadoDisponible).length;
+}
 
 const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
 
@@ -101,8 +110,11 @@ export function initPrestamoController() {
                 return { valido: false, mensaje: "La cantidad debe ser al menos 1." };
             }
 
-            if (herramienta && cantidad > herramienta.stock) {
-                return { valido: false, mensaje: "La cantidad solicitada supera el stock disponible (" + herramienta.stock + ")." };
+            if (herramienta) {
+                const disponibles = unidadesDisponibles(herramienta.idHerramienta);
+                if (cantidad > disponibles) {
+                    return { valido: false, mensaje: "Solo hay " + disponibles + " unidad(es) disponible(s) de ese equipo (las dañadas o prestadas no cuentan)." };
+                }
             }
         } else if (!idAreaSeleccionada.value) {
             return { valido: false, mensaje: "Busca y selecciona un área válida de la lista." };
@@ -164,10 +176,11 @@ export function initPrestamoController() {
         buscarHerramienta.addEventListener("change", () => {
             const encontrada = resolverPorNombre(buscarHerramienta.value, listaHerramientas, "nombreHerramienta");
             if (encontrada) {
+                const disponibles = unidadesDisponibles(encontrada.idHerramienta);
                 idHerramientaSeleccionada.value = encontrada.idHerramienta;
                 buscarHerramienta.value = encontrada.nombreHerramienta;
-                avisoHerramienta.textContent = "Stock disponible: " + encontrada.stock;
-                cantidadSolicitada.max = encontrada.stock;
+                avisoHerramienta.textContent = "Unidades disponibles: " + disponibles;
+                cantidadSolicitada.max = disponibles;
             } else {
                 idHerramientaSeleccionada.value = "";
                 avisoHerramienta.textContent = "No se encontró ese equipo. Revisa el nombre o agrégalo como nuevo.";
@@ -287,6 +300,8 @@ export function initPrestamoController() {
             listaAreas = await obtenerAreas();
             listaEstados = await obtenerEstadosPrestamo();
             listaTiposArea = await obtenerTiposArea();
+            listaDetallesHerramienta = await obtenerDetallesHerramienta();
+            listaEstadosHerramienta = await obtenerEstadosHerramienta();
             rellenarListaAreas();
         } catch (error) {
             console.error(error);
