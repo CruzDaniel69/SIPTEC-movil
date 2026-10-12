@@ -1,3 +1,4 @@
+import { idUsuarioActual } from "../utils/sesion.js";
 import { obtenerPrestamos, agregarPrestamo } from "../services/prestamoService.js";
 import { obtenerHerramientas } from "../services/herramientaService.js";
 import { obtenerAreas, agregarArea } from "../services/areaService.js";
@@ -32,7 +33,7 @@ function listaUnidadesDisponibles(idHerramienta) {
 const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
 
 function obtenerIdUsuarioActual() {
-    return Number(localStorage.getItem("siptec-usuario-id")) || 1;
+    return idUsuarioActual();
 }
 
 function resolverPorNombre(texto, lista, campoNombre) {

@@ -1,3 +1,4 @@
+import { usuarioActual, idUsuarioActual } from "../utils/sesion.js";
 import { obtenerPrestamos } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { obtenerHerramientas } from "../services/herramientaService.js";
@@ -5,9 +6,6 @@ import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoH
 import { obtenerAreas } from "../services/areaService.js";
 import { obtenerDetallePrestamoAreas } from "../services/detallePrestamoAreaService.js";
 
-function idUsuarioActual() {
-    return Number(localStorage.getItem("siptec-usuario-id")) || 0;
-}
 
 function diasRestantes(fechaEsperada) {
     const hoy = new Date();
@@ -32,7 +30,7 @@ export function initDashboardEmpleadoController() {
     if (!statActivos) return;
 
     const titulo = document.getElementById("tituloBienvenida");
-    const nombre = localStorage.getItem("siptec-usuario-nombre");
+    const nombre = (usuarioActual() || {}).nombreUsuario;
     if (titulo && nombre) titulo.textContent = `¡Bienvenido, ${nombre}!`;
 
     const lista = document.getElementById("listaPrestamosActivos");

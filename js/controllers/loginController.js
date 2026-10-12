@@ -3,7 +3,6 @@ import { iniciarSesion, haySesionActiva } from "../services/authService.js";
 const RUTA_APP = "pages/loadViews.html";
 
 async function redirigirSiYaHaySesion() {
-    if (!localStorage.getItem("siptec-usuario-id")) return;
     if (await haySesionActiva()) window.location.replace(RUTA_APP);
 }
 
@@ -38,11 +37,6 @@ export function initLoginController() {
                 return;
             }
 
-            localStorage.setItem("siptec-usuario-id", usuario.id);
-            localStorage.setItem("siptec-usuario-nombre", usuario.nombreUsuario);
-            localStorage.setItem("siptec-usuario-apellido", usuario.apellidoUsuario);
-            localStorage.setItem("siptec-usuario-correo", usuario.correoUsuario);
-            localStorage.setItem("siptec-role", usuario.nombreRol);
 
             window.location.replace(RUTA_APP);
 

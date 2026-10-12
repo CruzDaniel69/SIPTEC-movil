@@ -1,3 +1,4 @@
+import { usuarioActual } from "../utils/sesion.js";
 import { obtenerDetallesHerramienta } from "../services/detalleHerramientaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
 import { obtenerPrestamos } from "../services/prestamoService.js";
@@ -32,7 +33,7 @@ export function initDashboardController() {
     if (!statPrestados) return;
 
     const titulo = document.getElementById("tituloBienvenida");
-    const nombre = localStorage.getItem("siptec-usuario-nombre");
+    const nombre = (usuarioActual() || {}).nombreUsuario;
     if (titulo && nombre) titulo.textContent = `¡Bienvenido, ${nombre}!`;
 
     (async function cargarResumen() {

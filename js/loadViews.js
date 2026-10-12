@@ -5,9 +5,10 @@ import { initDashboardEmpleadoController } from "./controllers/dashboardEmpleado
 import { initReportesController, initReporteDetalleController, initModalGenerarReporte } from "./controllers/reportesController.js";
 import { initDevolucionController } from "./controllers/devolucionController.js";
 import { initImplementoController } from "./controllers/implementoController.js";
-import { exigirSesion, cerrarSesionCompleta } from "./utils/sesion.js";
+import { cargarSesion, cerrarSesionCompleta, usuarioActual, rolActual } from "./utils/sesion.js";
 
-exigirSesion("../index.html");
+// Pregunta a la API quién es el usuario de la cookie; desde aquí el resto lo lee de memoria
+await cargarSesion("../index.html");
 
 const viewRoot = document.getElementById("viewRoot");
 const btnNavInicio = document.getElementById("btnNavInicio");
@@ -18,7 +19,8 @@ const btnNavDevolucion = document.getElementById("btnNavDevolucion");
 
 const botonesNav = [btnNavInicio, btnNavPrestamos, btnNavReportes, btnNavDevolucion];
 
-const ROL_ACTUAL = (localStorage.getItem("siptec-role") || "EMPLEADO").toUpperCase();
+// Sin rol conocido se asume el de menos privilegios
+const ROL_ACTUAL = rolActual() || "EMPLEADO";
 const ES_ADMIN_O_IT = ROL_ACTUAL === "ADMINISTRADOR" || ROL_ACTUAL === "IT";
 
 if (!ES_ADMIN_O_IT && btnNavDevolucion) {
@@ -94,9 +96,8 @@ function mostrarNombreUsuario() {
     const nombreTopbar = document.getElementById("nombreUsuarioTopbar");
     if (!nombreTopbar) return;
 
-    const nombre = localStorage.getItem("siptec-usuario-nombre") || "";
-    const apellido = localStorage.getItem("siptec-usuario-apellido") || "";
-    nombreTopbar.textContent = `${nombre} ${apellido}`.trim();
+    const { nombreUsuario = "", apellidoUsuario = "" } = usuarioActual() || {};
+    nombreTopbar.textContent = `${nombreUsuario} ${apellidoUsuario}`.trim();
 }
 
 function initPanelPerfil() {
@@ -107,10 +108,9 @@ function initPanelPerfil() {
     const btnCerrarSesion = document.getElementById("btnCerrarSesion");
 
     function abrirPanel() {
-        const nombre = localStorage.getItem("siptec-usuario-nombre") || "";
-        const apellido = localStorage.getItem("siptec-usuario-apellido") || "";
-        document.getElementById("nombreUsuarioPerfil").textContent = `${nombre} ${apellido}`.trim();
-        document.getElementById("correoUsuarioPerfil").textContent = localStorage.getItem("siptec-usuario-correo") || "";
+        const { nombreUsuario = "", apellidoUsuario = "", correoUsuario = "" } = usuarioActual() || {};
+        document.getElementById("nombreUsuarioPerfil").textContent = `${nombreUsuario} ${apellidoUsuario}`.trim();
+        document.getElementById("correoUsuarioPerfil").textContent = correoUsuario;
         panel.classList.remove("oculto");
     }
 
