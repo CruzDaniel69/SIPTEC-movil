@@ -191,7 +191,6 @@
             cursor: pointer;
             margin-top: 10px;
             margin-bottom: 22px;
-            box-shadow: 0 6px 16px rgba(107, 179, 77, .35);
             transition: transform .1s ease, filter .15s ease;
         }
 
@@ -417,28 +416,24 @@
         .fondo-azul {
             background: rgba(25, 141, 230, .1);
             border: 1px solid rgba(25, 141, 230, .25);
-            box-shadow: 0 4px 14px rgba(25, 141, 230, .12);
             color: #0a4a8a;
         }
 
         .fondo-verde {
             background: rgba(40, 167, 69, .1);
             border: 1px solid rgba(40, 167, 69, .25);
-            box-shadow: 0 4px 14px rgba(40, 167, 69, .12);
             color: #146c2e;
         }
 
         .fondo-naranja {
             background: rgba(246, 166, 35, .12);
             border: 1px solid rgba(246, 166, 35, .3);
-            box-shadow: 0 4px 14px rgba(246, 166, 35, .14);
             color: #a45b0a;
         }
 
         .fondo-morado {
             background: rgba(138, 79, 214, .1);
             border: 1px solid rgba(138, 79, 214, .25);
-            box-shadow: 0 4px 14px rgba(138, 79, 214, .12);
             color: #6b21a8;
         }
 
@@ -628,28 +623,24 @@
         .tarjeta-accion.text-blue {
             background: rgba(25, 141, 230, .1);
             border: 1px solid rgba(25, 141, 230, .25);
-            box-shadow: 0 4px 14px rgba(25, 141, 230, .12);
             color: #1a63b8;
         }
 
         .tarjeta-accion.text-green {
             background: rgba(40, 167, 69, .1);
             border: 1px solid rgba(40, 167, 69, .25);
-            box-shadow: 0 4px 14px rgba(40, 167, 69, .12);
             color: #16a34a;
         }
 
         .tarjeta-accion.text-purple {
             background: rgba(138, 79, 214, .1);
             border: 1px solid rgba(138, 79, 214, .25);
-            box-shadow: 0 4px 14px rgba(138, 79, 214, .12);
             color: #7c22c9;
         }
 
         .tarjeta-accion.text-orange {
             background: rgba(246, 166, 35, .12);
             border: 1px solid rgba(246, 166, 35, .3);
-            box-shadow: 0 4px 14px rgba(246, 166, 35, .14);
             color: #c2570a;
         }
 
@@ -822,22 +813,18 @@
 
         .boton-accion-azulmarino {
             background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 55%), var(--navy);
-            box-shadow: 0 6px 16px rgba(0, 31, 61, .3);
         }
 
         .boton-accion-verde {
             background: linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 55%), var(--green);
-            box-shadow: 0 6px 16px rgba(40, 167, 69, .3);
         }
 
         .boton-accion-morado {
             background: linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 55%), var(--purple);
-            box-shadow: 0 6px 16px rgba(138, 79, 214, .3);
         }
 
         .boton-accion-gris {
             background: linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 55%), #4a5c6d;
-            box-shadow: 0 6px 16px rgba(74, 92, 109, .28);
         }
 
         .boton-accion-contorno {
