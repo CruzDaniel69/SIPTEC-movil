@@ -18,9 +18,10 @@
 <div class="caja-tarjeta seccion-herramienta">
     <div class="titulo-tarjeta">1. Seleccionar equipo</div>
     <div class="caja-buscador">
-        <input type="text" id="buscarHerramienta" placeholder="Escanea o busca el equipo">
+        <input type="text" id="buscarHerramienta" list="listaEquiposDatalist" placeholder="Escanea o busca el equipo">
         <i class="fa-solid fa-magnifying-glass"></i>
     </div>
+    <datalist id="listaEquiposDatalist"></datalist>
     <input type="hidden" id="idHerramientaSeleccionada">
     <small id="avisoHerramienta" style="display:block; margin-top:4px; font-size:9px; color:var(--ink-soft);"></small>
 

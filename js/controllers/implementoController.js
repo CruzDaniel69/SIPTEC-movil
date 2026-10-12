@@ -2,13 +2,14 @@ import { agregarHerramienta } from "../services/herramientaService.js";
 import { obtenerMarcas, agregarMarca } from "../services/marcaService.js";
 import { obtenerCategorias, agregarCategoria } from "../services/categoriaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
-import { obtenerDetallesHerramienta, agregarDetalleHerramienta } from "../services/detalleHerramientaService.js";
+import { agregarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { agregarHerramientaCategoria } from "../services/herramientaCategoriaService.js";
+import { obtenerCodigosExistentes } from "../services/inventarioService.js";
+import { retrasar } from "../utils/paginacion.js";
 
 let listaEstadosHerramienta = [];
 let listaMarcas = [];
 let listaCategorias = [];
-let listaDetalles = [];
 
 export function initImplementoController() {
     const nombreEquipo = document.getElementById("nombreEquipo");
@@ -32,11 +33,14 @@ export function initImplementoController() {
         return Array.from({ length: piezas }, (_, i) => `${prefijoCodigo.value}-${numeroInicial + i}`);
     }
 
-    function codigosRepetidos(codigos) {
-        return codigos.filter((c) => listaDetalles.some((d) => (d.codInv || "").toUpperCase() === c.toUpperCase()));
+    async function codigosRepetidos(codigos) {
+        return obtenerCodigosExistentes(codigos);
     }
 
-    function actualizarVistaPrevia() {
+    let versionVistaPrevia = 0;
+
+    async function actualizarVistaPrevia() {
+        const version = ++versionVistaPrevia;
         const codigos = generarCodigos();
         if (codigos.length === 0) {
             vistaPreviaCodigos.style.color = "var(--ink-soft)";
@@ -44,20 +48,26 @@ export function initImplementoController() {
             return;
         }
 
-        const repetidos = codigosRepetidos(codigos);
-        if (repetidos.length > 0) {
-            vistaPreviaCodigos.style.color = "var(--red)";
-            vistaPreviaCodigos.textContent = "Ya existe: " + repetidos.join(", ");
-            return;
-        }
-
         vistaPreviaCodigos.style.color = "var(--ink-soft)";
         vistaPreviaCodigos.textContent = codigos.length === 1
             ? "Se creará: " + codigos[0]
             : `Se crearán ${codigos.length} piezas: ${codigos[0]} al ${codigos[codigos.length - 1]}`;
+
+        try {
+            const repetidos = await codigosRepetidos(codigos);
+            if (version !== versionVistaPrevia) return;
+
+            if (repetidos.length > 0) {
+                vistaPreviaCodigos.style.color = "var(--red)";
+                vistaPreviaCodigos.textContent = "Ya existe: " + repetidos.join(", ");
+            }
+        } catch (error) {
+            console.error(error);
+        }
     }
 
-    [prefijoCodigo, numeroCodigo, cantidadPiezas].forEach((campo) => campo.addEventListener("input", actualizarVistaPrevia));
+    const vistaPreviaRetrasada = retrasar(actualizarVistaPrevia, 350);
+    [prefijoCodigo, numeroCodigo, cantidadPiezas].forEach((campo) => campo.addEventListener("input", vistaPreviaRetrasada));
 
     function limpiarFormulario() {
         nombreEquipo.value = "";
@@ -131,7 +141,7 @@ export function initImplementoController() {
         poblarSelect(categoriaSelect, listaCategorias, "nombreCategoria", creada ? creada.id : "");
     });
 
-    function validarFormulario() {
+    async function validarFormulario() {
         if (!nombreEquipo.value.trim()) {
             return { valido: false, mensaje: "Escribe el nombre del equipo." };
         }
@@ -146,7 +156,7 @@ export function initImplementoController() {
         if (!Number.isInteger(piezas) || piezas < 1 || piezas > 50) {
             return { valido: false, mensaje: "Indica entre 1 y 50 piezas." };
         }
-        const repetidos = codigosRepetidos(generarCodigos());
+        const repetidos = await codigosRepetidos(generarCodigos());
         if (repetidos.length > 0) {
             return { valido: false, mensaje: "Estos códigos ya existen: " + repetidos.join(", ") + ". Cambia el número inicial." };
         }
@@ -163,7 +173,15 @@ export function initImplementoController() {
     }
 
     async function guardarImplemento() {
-        const validacion = validarFormulario();
+        let validacion;
+        try {
+            validacion = await validarFormulario();
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: "error", title: "No se pudieron verificar los códigos", text: "Revisa tu conexión con el servidor." });
+            return;
+        }
+
         if (!validacion.valido) {
             Swal.fire({ icon: "warning", title: "Datos incompletos", text: validacion.mensaje });
             return;
@@ -224,15 +242,13 @@ export function initImplementoController() {
 
     (async function cargarCatalogos() {
         try {
-            const [marcas, categorias, estadosHerramienta, detalles] = await Promise.all([
+            const [marcas, categorias, estadosHerramienta] = await Promise.all([
                 obtenerMarcas(),
                 obtenerCategorias(),
                 obtenerEstadosHerramienta(),
-                obtenerDetallesHerramienta(),
             ]);
 
             listaEstadosHerramienta = estadosHerramienta;
-            listaDetalles = detalles || [];
             listaMarcas = marcas;
             listaCategorias = categorias;
 

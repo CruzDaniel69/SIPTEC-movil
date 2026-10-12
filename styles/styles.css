@@ -1169,3 +1169,58 @@
         #tipoArea:checked~.seccion-herramienta {
             display: none;
         }
+
+        /* Paginador (carga por páginas) */
+        .paginador {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 0 2px;
+        }
+
+        .paginador:empty {
+            display: none;
+        }
+
+        .paginador-info {
+            font-size: 10px;
+            color: var(--ink-soft);
+        }
+
+        .paginador-botones {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .paginador-botones button {
+            min-width: 30px;
+            height: 28px;
+            padding: 0 9px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--ink);
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .paginador-botones button.activa {
+            color: #fff;
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .paginador-botones button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .paginador-puntos {
+            color: var(--ink-soft);
+            font-size: 10px;
+        }

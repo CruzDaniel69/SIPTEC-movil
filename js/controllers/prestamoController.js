@@ -1,33 +1,41 @@
 import { idUsuarioActual } from "../utils/sesion.js";
-import { obtenerPrestamos, agregarPrestamo } from "../services/prestamoService.js";
-import { obtenerHerramientas } from "../services/herramientaService.js";
+import { agregarPrestamo } from "../services/prestamoService.js";
 import { obtenerAreas, agregarArea } from "../services/areaService.js";
 import { obtenerTiposArea } from "../services/tipoAreaService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
-import { obtenerDetallePrestamoHerramientas, agregarDetallePrestamoHerramienta } from "../services/detallePrestamoHerramientaService.js";
+import { agregarDetallePrestamoHerramienta } from "../services/detallePrestamoHerramientaService.js";
 import { agregarDetallePrestamoArea } from "../services/detallePrestamoAreaService.js";
-import { obtenerDetallesHerramienta } from "../services/detalleHerramientaService.js";
-import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
+import { buscarHerramientas, obtenerPiezaPorCodigo, obtenerPiezasDisponibles } from "../services/inventarioService.js";
+import { retrasar } from "../utils/paginacion.js";
 
-let listaHerramientas = [];
+let listaSugerencias = [];
 let listaAreas = [];
 let listaEstados = [];
 let listaTiposArea = [];
-let listaDetallesHerramienta = [];
-let listaEstadosHerramienta = [];
-let listaPrestamos = [];
-let listaDetallesPrestamo = [];
+let unidadesDisponibles = [];
 
-function listaUnidadesDisponibles(idHerramienta) {
-    const idEstadoDisponible = (listaEstadosHerramienta.find((e) => e.nombreEstadoHerramienta === "DISPONIBLE") || {}).id;
-    const idEstadoPendiente = (listaEstados.find((e) => e.nombreEstado === "PENDIENTE") || {}).id;
-    const prestamosPendientes = new Set(listaPrestamos.filter((p) => p.estado === idEstadoPendiente).map((p) => p.id));
-    const idsYaSolicitados = new Set(listaDetallesPrestamo
-        .filter((d) => d.detalleHerramienta && prestamosPendientes.has(d.prestamo))
-        .map((d) => d.detalleHerramienta));
+const patronCodigoEquipo = /^[A-Za-z]+-\d+$/;
 
-    return listaDetallesHerramienta.filter((d) =>
-        d.idHerramienta === idHerramienta && d.idEstadoHerramienta === idEstadoDisponible && !idsYaSolicitados.has(d.idDetalle));
+async function resolverEquipo(texto) {
+    const buscado = (texto || "").trim();
+    if (!buscado) return null;
+
+    if (patronCodigoEquipo.test(buscado)) {
+        try {
+            const pieza = await obtenerPiezaPorCodigo(buscado);
+            return {
+                herramienta: { idHerramienta: pieza.idHerramienta, nombreHerramienta: pieza.nombreHerramienta },
+                codigo: pieza.codInv,
+            };
+        } catch (error) {
+            // Si no existe ese código, se intenta buscar por nombre.
+        }
+    }
+
+    const encontradas = await buscarHerramientas(buscado, 10);
+    listaSugerencias = encontradas;
+    const coincidencia = encontradas.find((h) => h.nombreHerramienta.toLowerCase() === buscado.toLowerCase()) || encontradas[0];
+    return coincidencia ? { herramienta: coincidencia, codigo: null } : null;
 }
 
 const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
@@ -85,7 +93,7 @@ export function initPrestamoController() {
             return;
         }
 
-        const unidades = listaUnidadesDisponibles(herramienta.idHerramienta);
+        const unidades = unidadesDisponibles;
         if (unidades.length === 0) {
             contenedorUnidades.innerHTML = '<small style="font-size:9px; color:var(--red);">No hay piezas disponibles de este equipo.</small>';
             return;
@@ -106,6 +114,7 @@ export function initPrestamoController() {
         buscarHerramienta.value = "";
         idHerramientaSeleccionada.value = "";
         avisoHerramienta.textContent = "";
+        unidadesDisponibles = [];
         pintarUnidades(null);
         buscarArea.value = "";
         idAreaSeleccionada.value = "";
@@ -120,7 +129,7 @@ export function initPrestamoController() {
         }
     }
 
-    function validarFormularioPrestamo() {
+    async function validarFormularioPrestamo() {
         if (!fechaInicio.value || !fechaEsperada.value) {
             return { valido: false, mensaje: "Selecciona la fecha de inicio y la esperada." };
         }
@@ -140,8 +149,10 @@ export function initPrestamoController() {
                 return { valido: false, mensaje: "Marca al menos una pieza disponible (por ejemplo EQ-21)." };
             }
 
-            const idsPermitidos = new Set(listaUnidadesDisponibles(Number(idHerramientaSeleccionada.value)).map((u) => u.idDetalle));
+            const disponiblesAhora = await obtenerPiezasDisponibles(Number(idHerramientaSeleccionada.value));
+            const idsPermitidos = new Set(disponiblesAhora.map((u) => u.idDetalle));
             if (elegidas.some((id) => !idsPermitidos.has(id))) {
+                unidadesDisponibles = disponiblesAhora;
                 return { valido: false, mensaje: "Alguna pieza elegida ya no está disponible (prestada, dañada o solicitada)." };
             }
         } else if (!idAreaSeleccionada.value) {
@@ -152,7 +163,15 @@ export function initPrestamoController() {
     }
 
     async function registrarPrestamo() {
-        const validacion = validarFormularioPrestamo();
+        let validacion;
+        try {
+            validacion = await validarFormularioPrestamo();
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: "error", title: "No se pudo verificar la disponibilidad", text: "Revisa tu conexión con el servidor." });
+            return;
+        }
+
         if (!validacion.valido) {
             Swal.fire({ icon: "warning", title: "Datos incompletos", text: validacion.mensaje });
             return;
@@ -203,23 +222,45 @@ export function initPrestamoController() {
         }
     }
 
-    function conectarBuscadorHerramienta() {
-        buscarHerramienta.addEventListener("change", () => {
-            const texto = buscarHerramienta.value.trim();
-            const unidadPorCodigo = listaDetallesHerramienta.find((d) => d.codInv.toLowerCase() === texto.toLowerCase());
-            const encontrada = unidadPorCodigo
-                ? listaHerramientas.find((h) => h.idHerramienta === unidadPorCodigo.idHerramienta)
-                : resolverPorNombre(texto, listaHerramientas, "nombreHerramienta");
+    function rellenarSugerenciasEquipos() {
+        const datalist = document.getElementById("listaEquiposDatalist");
+        if (!datalist) return;
+        datalist.innerHTML = listaSugerencias.map((h) => `<option value="${h.nombreHerramienta}"></option>`).join("");
+    }
 
-            if (encontrada) {
-                idHerramientaSeleccionada.value = encontrada.idHerramienta;
-                buscarHerramienta.value = encontrada.nombreHerramienta;
-                avisoHerramienta.textContent = "Piezas disponibles: " + listaUnidadesDisponibles(encontrada.idHerramienta).length;
-                pintarUnidades(encontrada, unidadPorCodigo ? unidadPorCodigo.codInv : null);
-            } else {
-                idHerramientaSeleccionada.value = "";
-                avisoHerramienta.textContent = "No se encontró ese equipo. Revisa el nombre o el código, o agrégalo como nuevo.";
-                pintarUnidades(null);
+    function conectarBuscadorHerramienta() {
+        const sugerir = retrasar(async () => {
+            const texto = buscarHerramienta.value.trim();
+            if (!texto || patronCodigoEquipo.test(texto)) return;
+            try {
+                listaSugerencias = await buscarHerramientas(texto, 10);
+                rellenarSugerenciasEquipos();
+            } catch (error) {
+                console.error(error);
+            }
+        }, 250);
+        buscarHerramienta.addEventListener("input", sugerir);
+
+        buscarHerramienta.addEventListener("change", async () => {
+            try {
+                const resultado = await resolverEquipo(buscarHerramienta.value);
+
+                if (resultado) {
+                    const encontrada = resultado.herramienta;
+                    unidadesDisponibles = await obtenerPiezasDisponibles(encontrada.idHerramienta);
+                    idHerramientaSeleccionada.value = encontrada.idHerramienta;
+                    buscarHerramienta.value = encontrada.nombreHerramienta;
+                    avisoHerramienta.textContent = "Piezas disponibles: " + unidadesDisponibles.length;
+                    pintarUnidades(encontrada, resultado.codigo);
+                } else {
+                    unidadesDisponibles = [];
+                    idHerramientaSeleccionada.value = "";
+                    avisoHerramienta.textContent = "No se encontró ese equipo. Revisa el nombre o el código.";
+                    pintarUnidades(null);
+                }
+            } catch (error) {
+                console.error(error);
+                avisoHerramienta.textContent = "No se pudo consultar el equipo. Revisa tu conexión.";
             }
         });
     }
@@ -332,14 +373,9 @@ export function initPrestamoController() {
 
     (async function cargarCatalogos() {
         try {
-            listaHerramientas = await obtenerHerramientas();
             listaAreas = await obtenerAreas();
             listaEstados = await obtenerEstadosPrestamo();
             listaTiposArea = await obtenerTiposArea();
-            listaDetallesHerramienta = await obtenerDetallesHerramienta();
-            listaEstadosHerramienta = await obtenerEstadosHerramienta();
-            listaPrestamos = await obtenerPrestamos();
-            listaDetallesPrestamo = await obtenerDetallePrestamoHerramientas();
             rellenarListaAreas();
         } catch (error) {
             console.error(error);

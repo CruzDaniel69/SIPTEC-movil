@@ -1,12 +1,10 @@
-import { obtenerPrestamos, actualizarPrestamo } from "../services/prestamoService.js";
+import { obtenerPrestamosPagina, actualizarPrestamo } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
-import { obtenerHerramientas } from "../services/herramientaService.js";
-import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
-import { obtenerAreas } from "../services/areaService.js";
-import { obtenerDetallePrestamoAreas } from "../services/detallePrestamoAreaService.js";
-import { obtenerUsuarios } from "../services/usuarioService.js";
-import { obtenerDetallesHerramienta, actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
+import { actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
+import { pintarPaginador } from "../utils/paginacion.js";
+
+const TAMANO_LISTA = 10;
 
 function formatearFecha(fechaISO) {
     if (!fechaISO) return "-";
@@ -18,40 +16,27 @@ export async function initAprobarPrestamosController() {
     const lista = document.getElementById("listaSolicitudesPendientes");
     if (!lista) return;
 
-    let prestamos = [];
     let estados = [];
-    let pendientes = [];
-    let detallesPrestamoHerramienta = [];
-    let detallesFisicos = [];
     let estadosHerramienta = [];
+    let pendientes = [];
+    let paginaActual = 0;
 
-    function construirFila(prestamo, herramientas, detallesHerramienta, areas, detallesArea, usuarios) {
-        const usuario = usuarios.find((u) => u.id === prestamo.usuario);
-        const detallesDelPrestamo = detallesHerramienta.filter((d) => d.prestamo === prestamo.id);
-        const detalleHerramienta = detallesDelPrestamo[0];
-        const detalleArea = detallesArea.find((d) => d.prestamoIdPrestamo === prestamo.id);
+    function construirFila(prestamo) {
+        let recurso = prestamo.nombreProducto;
 
-        let recurso = "Préstamo #" + prestamo.id;
-
-        if (detalleHerramienta) {
-            const herramienta = herramientas.find((h) => h.idHerramienta === detalleHerramienta.herramienta);
-            const codigos = detallesDelPrestamo
-                .map((d) => (detallesFisicos.find((u) => u.idDetalle === d.detalleHerramienta) || {}).codInv)
-                .filter(Boolean);
-            const sufijo = codigos.length > 0
-                ? codigos.join(", ")
-                : "x" + detallesDelPrestamo.reduce((suma, d) => suma + (d.cantidad || 1), 0);
-            recurso = (herramienta ? herramienta.nombreHerramienta : "Equipo") + ` (${sufijo})`;
-        } else if (detalleArea) {
-            const area = areas.find((a) => a.id === detalleArea.areasIdArea);
-            recurso = area ? area.nombreArea : "Área";
+        if (prestamo.tipo === "Herramienta" && prestamo.idHerramienta) {
+            const sufijo = prestamo.piezasAsignadas && prestamo.piezas.length > 0
+                ? prestamo.piezas.map((p) => p.codInv).join(", ")
+                : "x" + prestamo.cantidad;
+            recurso = `${prestamo.nombreProducto} (${sufijo})`;
         }
 
         return {
             id: prestamo.id,
             recurso,
-            nombreUsuario: usuario ? `${usuario.nombreUsuario} ${usuario.apellidoUsuario}` : "Usuario",
+            nombreUsuario: prestamo.nombreUsuario || "Usuario",
             fecha: formatearFecha(prestamo.fechaInicio),
+            datos: prestamo,
         };
     }
 
@@ -75,14 +60,36 @@ export async function initAprobarPrestamosController() {
         `).join("");
     }
 
+    async function cargarPagina(pagina = paginaActual) {
+        const datos = await obtenerPrestamosPagina({ page: pagina, size: TAMANO_LISTA, estados: ["PENDIENTE"] });
+
+        if (datos.content.length === 0 && pagina > 0) {
+            return cargarPagina(pagina - 1);
+        }
+
+        paginaActual = datos.page;
+        pendientes = datos.content.map(construirFila);
+        pintarLista();
+        pintarPaginador(document.getElementById("paginadorSolicitudes"), datos, async (destino) => {
+            try {
+                await cargarPagina(destino);
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo cargar la página", text: "Revisa tu conexión con el servidor." });
+            }
+        });
+    }
+
     async function responderSolicitud(idPrestamo, nombreEstadoNuevo) {
         const estadoNuevo = estados.find((e) => e.nombreEstado === nombreEstadoNuevo);
-        const prestamoOriginal = prestamos.find((p) => p.id === idPrestamo);
-        if (!estadoNuevo || !prestamoOriginal) return;
+        const fila = pendientes.find((p) => p.id === idPrestamo);
+        if (!estadoNuevo || !fila) return;
+
+        const prestamoOriginal = fila.datos;
 
         try {
             await actualizarPrestamo(idPrestamo, {
-                usuario: prestamoOriginal.usuario,
+                usuario: prestamoOriginal.idUsuario,
                 fechaInicio: prestamoOriginal.fechaInicio,
                 fechaEsperada: prestamoOriginal.fechaEsperada,
                 fechaDevolucion: prestamoOriginal.fechaDevolucion,
@@ -91,19 +98,14 @@ export async function initAprobarPrestamosController() {
 
             if (nombreEstadoNuevo === "APROBADO") {
                 const idEnPrestamo = (estadosHerramienta.find((e) => e.nombreEstadoHerramienta === "EN PRESTAMO") || {}).id;
-                const lineas = detallesPrestamoHerramienta.filter((d) => d.prestamo === idPrestamo);
 
-                for (const linea of lineas) {
-                    const detalleFisico = linea.detalleHerramienta
-                        ? detallesFisicos.find((d) => d.idDetalle === linea.detalleHerramienta)
-                        : detallesFisicos.find((d) => d.idHerramienta === linea.herramienta);
-
-                    if (detalleFisico && idEnPrestamo) {
-                        await actualizarDetalleHerramienta(detalleFisico.idDetalle, {
-                            idHerramienta: detalleFisico.idHerramienta,
-                            idMarca: detalleFisico.idMarca,
+                if (idEnPrestamo) {
+                    for (const pieza of prestamoOriginal.piezas) {
+                        await actualizarDetalleHerramienta(pieza.idDetalle, {
+                            idHerramienta: pieza.idHerramienta,
+                            idMarca: pieza.idMarca,
                             idEstadoHerramienta: idEnPrestamo,
-                            codInv: detalleFisico.codInv,
+                            codInv: pieza.codInv,
                         });
                     }
                 }
@@ -115,8 +117,7 @@ export async function initAprobarPrestamosController() {
                 confirmButtonColor: nombreEstadoNuevo === "APROBADO" ? "#28a745" : "#dc3545",
             });
 
-            pendientes = pendientes.filter((fila) => fila.id !== idPrestamo);
-            pintarLista();
+            await cargarPagina(paginaActual);
         } catch (error) {
             console.error(error);
             Swal.fire({
@@ -137,30 +138,12 @@ export async function initAprobarPrestamosController() {
     });
 
     try {
-        const [prestamosCargados, estadosCargados, herramientas, detallesHerramienta, areas, detallesArea, usuarios, detallesFisicosCargados, estadosHerramientaCargados] = await Promise.all([
-            obtenerPrestamos(),
+        [estados, estadosHerramienta] = await Promise.all([
             obtenerEstadosPrestamo(),
-            obtenerHerramientas(),
-            obtenerDetallePrestamoHerramientas(),
-            obtenerAreas().catch(() => []),
-            obtenerDetallePrestamoAreas().catch(() => []),
-            obtenerUsuarios(),
-            obtenerDetallesHerramienta(),
             obtenerEstadosHerramienta(),
         ]);
 
-        prestamos = prestamosCargados;
-        estados = estadosCargados;
-        detallesPrestamoHerramienta = detallesHerramienta;
-        detallesFisicos = detallesFisicosCargados;
-        estadosHerramienta = estadosHerramientaCargados;
-
-        const estadoPendiente = estados.find((e) => e.nombreEstado === "PENDIENTE");
-        pendientes = prestamos
-            .filter((p) => estadoPendiente && p.estado === estadoPendiente.id)
-            .map((p) => construirFila(p, herramientas, detallesHerramienta, areas, detallesArea, usuarios));
-
-        pintarLista();
+        await cargarPagina(0);
     } catch (error) {
         console.error(error);
         lista.innerHTML = '<p style="font-size:11px;color:var(--red);">No se pudo cargar la lista. Revisa tu conexión con el servidor.</p>';

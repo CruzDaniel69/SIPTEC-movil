@@ -1,10 +1,8 @@
 import { usuarioActual, idUsuarioActual } from "../utils/sesion.js";
-import { obtenerPrestamos } from "../services/prestamoService.js";
-import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
-import { obtenerHerramientas } from "../services/herramientaService.js";
-import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
-import { obtenerAreas } from "../services/areaService.js";
-import { obtenerDetallePrestamoAreas } from "../services/detallePrestamoAreaService.js";
+import { obtenerPrestamosPagina } from "../services/prestamoService.js";
+import { pintarPaginador } from "../utils/paginacion.js";
+
+const TAMANO_LISTA = 5;
 
 
 function diasRestantes(fechaEsperada) {
@@ -25,6 +23,22 @@ function formatearFecha(fechaISO) {
     return fecha.toLocaleDateString("es-SV", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function fechaLocalISO(fecha) {
+    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dia = String(fecha.getDate()).padStart(2, "0");
+    return `${fecha.getFullYear()}-${mes}-${dia}`;
+}
+
+function consultaActivos(extra = {}) {
+    return obtenerPrestamosPagina({
+        estados: ["APROBADO", "ENTREGADO"],
+        usuario: idUsuarioActual(),
+        sinDevolucion: true,
+        orden: "vencimiento",
+        ...extra,
+    });
+}
+
 export function initDashboardEmpleadoController() {
     const statActivos = document.getElementById("statMisActivos");
     if (!statActivos) return;
@@ -35,68 +49,67 @@ export function initDashboardEmpleadoController() {
 
     const lista = document.getElementById("listaPrestamosActivos");
 
-    (async function cargarResumen() {
-        try {
-            const [prestamos, estados, herramientas, detallesHerramienta, areas, detallesArea] = await Promise.all([
-                obtenerPrestamos(),
-                obtenerEstadosPrestamo(),
-                obtenerHerramientas(),
-                obtenerDetallePrestamoHerramientas(),
-                obtenerAreas().catch(() => []),
-                obtenerDetallePrestamoAreas().catch(() => []),
-            ]);
+    function pintarActivos(prestamos) {
+        if (prestamos.length === 0) {
+            lista.innerHTML = '<p style="padding:8px 0;color:var(--ink-soft);font-size:12px;">No tienes préstamos activos.</p>';
+            return;
+        }
 
-            const nombreEstado = (id) => (estados.find((e) => e.id === id) || {}).nombreEstado;
-            const misPrestamos = prestamos.filter((p) => p.usuario === idUsuarioActual());
-
-            const activos = misPrestamos.filter((p) => !p.fechaDevolucion && ["APROBADO", "ENTREGADO"].includes(nombreEstado(p.estado)));
-            const pendientes = misPrestamos.filter((p) => nombreEstado(p.estado) === "PENDIENTE");
-            const porVencer = activos.filter((p) => p.fechaEsperada && diasRestantes(p.fechaEsperada) <= 3);
-
-            statActivos.textContent = activos.length;
-            document.getElementById("statPorVencer").textContent = porVencer.length;
-            document.getElementById("statMisPendientes").textContent = pendientes.length;
-
-            if (activos.length === 0) {
-                lista.innerHTML = '<p style="padding:8px 0;color:var(--ink-soft);font-size:12px;">No tienes préstamos activos.</p>';
-                return;
+        lista.innerHTML = "";
+        prestamos.forEach((prestamo) => {
+            let recurso = prestamo.nombreProducto;
+            if (prestamo.tipo === "Herramienta" && prestamo.idHerramienta) {
+                recurso += ` (x${prestamo.cantidad})`;
             }
 
-            lista.innerHTML = "";
-            activos
-                .sort((a, b) => new Date(a.fechaEsperada) - new Date(b.fechaEsperada))
-                .slice(0, 5)
-                .forEach((prestamo) => {
-                    const lineas = detallesHerramienta.filter((d) => d.prestamo === prestamo.id);
-                    const detalleArea = detallesArea.find((d) => d.prestamoIdPrestamo === prestamo.id);
+            const clase = claseFecha(prestamo.fechaEsperada);
+            const fila = document.createElement("div");
+            fila.className = "fila-elemento";
+            fila.style.cursor = "default";
+            fila.innerHTML = `
+                <i class="fa-solid fa-toolbox icono-elemento"></i>
+                <div class="info-elemento">
+                    <div class="titulo-elemento">${recurso}</div>
+                    <div class="subtitulo-elemento">Préstamo #${prestamo.id}</div>
+                </div>
+                <div class="vencimiento-elemento">
+                    Devolver antes de
+                    <div class="fecha-elemento ${clase}">${formatearFecha(prestamo.fechaEsperada)} <span class="punto punto-${clase === "due-red" ? "rojo" : clase === "due-yellow" ? "amarillo" : "verde"}"></span></div>
+                </div>
+            `;
+            lista.appendChild(fila);
+        });
+    }
 
-                    let recurso = "Préstamo #" + prestamo.id;
-                    if (lineas.length > 0) {
-                        const herramienta = herramientas.find((h) => h.idHerramienta === lineas[0].herramienta);
-                        const piezas = lineas.reduce((suma, d) => suma + (d.cantidad || 1), 0);
-                        recurso = (herramienta ? herramienta.nombreHerramienta : "Equipo") + ` (x${piezas})`;
-                    } else if (detalleArea) {
-                        const area = areas.find((a) => a.id === detalleArea.areasIdArea);
-                        recurso = area ? area.nombreArea : "Área";
-                    }
+    async function cargarActivos(pagina) {
+        const datos = await consultaActivos({ page: pagina, size: TAMANO_LISTA });
 
-                    const clase = claseFecha(prestamo.fechaEsperada);
-                    const fila = document.createElement("div");
-                    fila.className = "fila-elemento";
-                    fila.style.cursor = "default";
-                    fila.innerHTML = `
-                        <i class="fa-solid fa-toolbox icono-elemento"></i>
-                        <div class="info-elemento">
-                            <div class="titulo-elemento">${recurso}</div>
-                            <div class="subtitulo-elemento">Préstamo #${prestamo.id}</div>
-                        </div>
-                        <div class="vencimiento-elemento">
-                            Devolver antes de
-                            <div class="fecha-elemento ${clase}">${formatearFecha(prestamo.fechaEsperada)} <span class="punto punto-${clase === "due-red" ? "rojo" : clase === "due-yellow" ? "amarillo" : "verde"}"></span></div>
-                        </div>
-                    `;
-                    lista.appendChild(fila);
-                });
+        pintarActivos(datos.content);
+        pintarPaginador(document.getElementById("paginadorActivos"), datos, async (destino) => {
+            try {
+                await cargarActivos(destino);
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo cargar la página", text: "Revisa tu conexión con el servidor." });
+            }
+        });
+        return datos;
+    }
+
+    (async function cargarResumen() {
+        try {
+            const limite = new Date();
+            limite.setDate(limite.getDate() + 3);
+
+            const [activos, porVencer, pendientes] = await Promise.all([
+                cargarActivos(0),
+                consultaActivos({ size: 5, vencenAntesDe: fechaLocalISO(limite) }),
+                obtenerPrestamosPagina({ size: 5, estados: ["PENDIENTE"], usuario: idUsuarioActual() }),
+            ]);
+
+            statActivos.textContent = activos.totalElements;
+            document.getElementById("statPorVencer").textContent = porVencer.totalElements;
+            document.getElementById("statMisPendientes").textContent = pendientes.totalElements;
         } catch (error) {
             console.error(error);
             Swal.fire({ icon: "error", title: "No se pudo cargar el resumen", text: "Revisa tu conexión con el servidor." });

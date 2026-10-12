@@ -1,10 +1,7 @@
 import { usuarioActual } from "../utils/sesion.js";
-import { obtenerDetallesHerramienta } from "../services/detalleHerramientaService.js";
-import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
-import { obtenerPrestamos } from "../services/prestamoService.js";
-import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
-import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
-import { obtenerHerramientas } from "../services/herramientaService.js";
+import { obtenerPrestamosPagina } from "../services/prestamoService.js";
+import { obtenerResumenDashboard } from "../services/dashboardService.js";
+import { pintarPaginador } from "../utils/paginacion.js";
 
 function calcularEstadoFecha(fechaEsperada) {
     const hoy = new Date();
@@ -23,6 +20,14 @@ function formatearFecha(fechaISO) {
     return fecha.toLocaleDateString("es-SV", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function fechaLocalISO(fecha) {
+    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dia = String(fecha.getDate()).padStart(2, "0");
+    return `${fecha.getFullYear()}-${mes}-${dia}`;
+}
+
+const TAMANO_LISTA = 5;
+
 export function initDashboardController() {
     const statPrestados = document.getElementById("statEquiposPrestados");
     const statPendientes = document.getElementById("statDevolucionesPendientes");
@@ -36,72 +41,68 @@ export function initDashboardController() {
     const nombre = (usuarioActual() || {}).nombreUsuario;
     if (titulo && nombre) titulo.textContent = `¡Bienvenido, ${nombre}!`;
 
+    function pintarActivos(prestamos) {
+        if (!listaPrestamosActivos) return;
+        listaPrestamosActivos.innerHTML = "";
+
+        if (prestamos.length === 0) {
+            listaPrestamosActivos.innerHTML = '<p style="padding:8px 0;color:var(--ink-soft);font-size:12px;">No hay préstamos activos por el momento.</p>';
+            return;
+        }
+
+        prestamos.forEach((prestamo) => {
+            const claseFecha = calcularEstadoFecha(prestamo.fechaEsperada);
+
+            const fila = document.createElement("div");
+            fila.className = "fila-elemento";
+            fila.innerHTML = `
+                <i class="fa-solid fa-toolbox icono-elemento"></i>
+                <div class="info-elemento">
+                    <div class="titulo-elemento">${prestamo.nombreProducto}</div>
+                    <div class="subtitulo-elemento">Préstamo #${prestamo.id}</div>
+                </div>
+                <div class="vencimiento-elemento">
+                    Devolver antes de
+                    <div class="fecha-elemento ${claseFecha}">${formatearFecha(prestamo.fechaEsperada)} <span class="punto punto-${claseFecha === "due-red" ? "rojo" : claseFecha === "due-yellow" ? "amarillo" : "verde"}"></span></div>
+                </div>
+            `;
+            fila.addEventListener("click", () => loadView("devolucion"));
+            listaPrestamosActivos.appendChild(fila);
+        });
+    }
+
+    async function cargarActivos(pagina) {
+        const datos = await obtenerPrestamosPagina({
+            page: pagina,
+            size: TAMANO_LISTA,
+            estados: ["APROBADO", "ENTREGADO"],
+            sinDevolucion: true,
+            orden: "vencimiento",
+        });
+
+        pintarActivos(datos.content);
+        pintarPaginador(document.getElementById("paginadorActivos"), datos, async (destino) => {
+            try {
+                await cargarActivos(destino);
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo cargar la página", text: "Revisa tu conexión con el servidor." });
+            }
+        });
+        return datos;
+    }
+
     (async function cargarResumen() {
         try {
-            const [detalles, estadosHerramienta, prestamos, estadosPrestamo, detallesPrestamo, herramientas] = await Promise.all([
-                obtenerDetallesHerramienta(),
-                obtenerEstadosHerramienta(),
-                obtenerPrestamos(),
-                obtenerEstadosPrestamo(),
-                obtenerDetallePrestamoHerramientas(),
-                obtenerHerramientas(),
+            const [resumen, activos] = await Promise.all([
+                obtenerResumenDashboard(fechaLocalISO(new Date())),
+                cargarActivos(0),
             ]);
 
-            const idEstado = (nombre) => {
-                const estado = estadosHerramienta.find((item) => item.nombreEstadoHerramienta === nombre);
-                return estado ? estado.id : null;
-            };
-
-            const idDisponible = idEstado("DISPONIBLE");
-            const idEnPrestamo = idEstado("EN PRESTAMO");
-            const idDanado = idEstado("DAÑADO");
-
-            statPrestados.textContent = detalles.filter((item) => item.idEstadoHerramienta === idEnPrestamo).length;
-            statDanados.textContent = detalles.filter((item) => item.idEstadoHerramienta === idDanado).length;
-            statDisponibles.textContent = detalles.filter((item) => item.idEstadoHerramienta === idDisponible).length;
-
-            const estadosActivos = ["APROBADO", "ENTREGADO"];
-            const prestamosActivos = prestamos.filter((prestamo) => {
-                if (prestamo.fechaDevolucion) return false;
-                const estado = estadosPrestamo.find((item) => item.id === prestamo.estado);
-                return estado && estadosActivos.includes(estado.nombreEstado);
-            });
-
-            statPendientes.textContent = prestamosActivos.length;
-
-            if (listaPrestamosActivos) {
-                listaPrestamosActivos.innerHTML = "";
-
-                if (prestamosActivos.length === 0) {
-                    listaPrestamosActivos.innerHTML = '<p style="padding:8px 0;color:var(--ink-soft);font-size:12px;">No hay préstamos activos por el momento.</p>';
-                } else {
-                    prestamosActivos
-                        .sort((a, b) => new Date(a.fechaEsperada) - new Date(b.fechaEsperada))
-                        .slice(0, 5)
-                        .forEach((prestamo) => {
-                            const detalle = detallesPrestamo.find((item) => item.prestamo === prestamo.id);
-                            const herramienta = detalle ? herramientas.find((item) => item.idHerramienta === detalle.herramienta) : null;
-                            const nombreEquipo = herramienta ? herramienta.nombreHerramienta : "Área asignada";
-                            const claseFecha = calcularEstadoFecha(prestamo.fechaEsperada);
-
-                            const fila = document.createElement("div");
-                            fila.className = "fila-elemento";
-                            fila.innerHTML = `
-                                <i class="fa-solid fa-toolbox icono-elemento"></i>
-                                <div class="info-elemento">
-                                    <div class="titulo-elemento">${nombreEquipo}</div>
-                                    <div class="subtitulo-elemento">Préstamo #${prestamo.id}</div>
-                                </div>
-                                <div class="vencimiento-elemento">
-                                    Devolver antes de
-                                    <div class="fecha-elemento ${claseFecha}">${formatearFecha(prestamo.fechaEsperada)} <span class="punto punto-${claseFecha === "due-red" ? "rojo" : claseFecha === "due-yellow" ? "amarillo" : "verde"}"></span></div>
-                                </div>
-                            `;
-                            fila.addEventListener("click", () => loadView("devolucion"));
-                            listaPrestamosActivos.appendChild(fila);
-                        });
-                }
-            }
+            statPrestados.textContent = resumen.prestados;
+            statDanados.textContent = resumen.danados;
+            statDisponibles.textContent = resumen.disponibles;
+            statPendientes.textContent = activos.totalElements;
         } catch (error) {
             console.error(error);
             Swal.fire({ icon: "error", title: "No se pudo cargar el resumen", text: "Revisa tu conexión con el servidor." });

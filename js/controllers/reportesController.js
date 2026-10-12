@@ -1,12 +1,11 @@
-import { obtenerPrestamos } from "../services/prestamoService.js";
-import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
-import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
-import { obtenerDetallePrestamoAreas } from "../services/detallePrestamoAreaService.js";
-import { obtenerHerramientas } from "../services/herramientaService.js";
-import { obtenerDetallesHerramienta } from "../services/detalleHerramientaService.js";
-import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
-import { obtenerAreas } from "../services/areaService.js";
-import { obtenerUsuarios } from "../services/usuarioService.js";
+import { obtenerPrestamosPagina } from "../services/prestamoService.js";
+import { obtenerPiezasPagina } from "../services/inventarioService.js";
+import { pintarPaginador } from "../utils/paginacion.js";
+
+const TAMANO_PAGINA_DETALLE = 10;
+const TAMANO_LOTE_MODAL = 25;
+
+const ESTADOS_TODOS = ["PENDIENTE", "APROBADO", "ENTREGADO", "DEVUELTO", "RECHAZADO"];
 
 const TITULOS_REPORTE = {
     activos: { titulo: "Préstamos activos", subtitulo: "Equipos actualmente prestados", vacio: "No hay préstamos activos por el momento." },
@@ -21,87 +20,46 @@ function formatearFecha(fechaISO) {
     return fecha.toLocaleDateString("es-SV", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function dentroDeRango(fechaISO, inicio, fin) {
-    if (!inicio || !fin) return true;
-    if (!fechaISO) return false;
-    return fechaISO >= inicio && fechaISO <= fin;
-}
-
-async function construirDatosReporte(tipo, inicio, fin) {
+function pedirPagina(tipo, inicio, fin, pagina, tamano) {
     if (tipo === "danados") {
-        const [detalles, estadosHerramienta, herramientas] = await Promise.all([
-            obtenerDetallesHerramienta(),
-            obtenerEstadosHerramienta(),
-            obtenerHerramientas(),
-        ]);
-
-        const idDanado = (estadosHerramienta.find((e) => e.nombreEstadoHerramienta === "DAÑADO") || {}).id;
-
-        return detalles
-            .filter((detalle) => detalle.idEstadoHerramienta === idDanado)
-            .map((detalle) => {
-                const herramienta = herramientas.find((h) => h.idHerramienta === detalle.idHerramienta);
-                return {
-                    icono: "fa-triangle-exclamation",
-                    titulo: herramienta ? herramienta.nombreHerramienta : "Equipo",
-                    subtitulo: "Código: " + detalle.codInv,
-                };
-            });
+        return obtenerPiezasPagina({ page: pagina, size: tamano, estado: "DAÑADO" });
     }
 
-    const [prestamos, estadosPrestamo, detallesHerramienta, detallesArea, herramientas, areas, usuarios] = await Promise.all([
-        obtenerPrestamos(),
-        obtenerEstadosPrestamo(),
-        obtenerDetallePrestamoHerramientas(),
-        obtenerDetallePrestamoAreas().catch(() => []),
-        obtenerHerramientas(),
-        obtenerAreas().catch(() => []),
-        obtenerUsuarios().catch(() => []), // el empleado no puede listar usuarios
-    ]);
-
-    let filtrados = prestamos;
+    const base = { page: pagina, size: tamano };
 
     if (tipo === "activos") {
-        filtrados = prestamos.filter((p) => !p.fechaDevolucion && dentroDeRango(p.fechaInicio, inicio, fin));
-    } else if (tipo === "historial") {
-        filtrados = prestamos.filter((p) => dentroDeRango(p.fechaInicio, inicio, fin));
-    } else if (tipo === "devoluciones") {
-        filtrados = prestamos.filter((p) => p.fechaDevolucion && dentroDeRango(p.fechaDevolucion, inicio, fin));
+        return obtenerPrestamosPagina({ ...base, estados: ["PENDIENTE", "APROBADO", "ENTREGADO"], sinDevolucion: true, desde: inicio || "", hasta: fin || "" });
+    }
+    if (tipo === "historial") {
+        return obtenerPrestamosPagina({ ...base, estados: ESTADOS_TODOS, desde: inicio || "", hasta: fin || "" });
     }
 
-    return filtrados.map((prestamo) => {
-        const usuario = usuarios.find((u) => u.id === prestamo.usuario);
-        const estado = estadosPrestamo.find((e) => e.id === prestamo.estado);
-        const detalleHerramienta = detallesHerramienta.find((d) => d.prestamo === prestamo.id);
-        const detalleArea = detallesArea.find((d) => d.prestamoIdPrestamo === prestamo.id);
+    return obtenerPrestamosPagina({ ...base, estados: inicio && fin ? ESTADOS_TODOS : ["DEVUELTO"], desde: inicio || "", hasta: fin || "", campoFecha: "devolucion" });
+}
 
-        let icono = "fa-toolbox";
-        let recurso = "Préstamo #" + prestamo.id;
+function convertirFila(tipo, elemento) {
+    if (tipo === "danados") {
+        return {
+            icono: "fa-triangle-exclamation",
+            titulo: elemento.nombreHerramienta || "Equipo",
+            subtitulo: "Código: " + elemento.codInv,
+        };
+    }
 
-        if (detalleHerramienta) {
-            const herramienta = herramientas.find((h) => h.idHerramienta === detalleHerramienta.herramienta);
-            recurso = herramienta ? herramienta.nombreHerramienta : recurso;
-        } else if (detalleArea) {
-            icono = "fa-door-open";
-            const area = areas.find((a) => a.id === detalleArea.areasIdArea);
-            recurso = area ? area.nombreArea : recurso;
-        }
+    const nombreUsuario = elemento.nombreUsuario || "Usuario";
+    const icono = elemento.tipo === "Área" ? "fa-door-open" : "fa-toolbox";
 
-        const nombreUsuario = usuario ? `${usuario.nombreUsuario} ${usuario.apellidoUsuario}` : "Usuario";
-        const nombreEstado = estado ? estado.nombreEstado : "";
+    let subtitulo = `${nombreUsuario} · ${formatearFecha(elemento.fechaInicio)}`;
+    if (tipo === "devoluciones") {
+        subtitulo = `${nombreUsuario} · Devuelto: ${formatearFecha(elemento.fechaDevolucion)}`;
+    } else if (tipo === "historial") {
+        subtitulo = `${nombreUsuario} · ${elemento.nombreEstado} · ${formatearFecha(elemento.fechaInicio)}` +
+            (elemento.fechaDevolucion ? ` → ${formatearFecha(elemento.fechaDevolucion)}` : "");
+    } else if (tipo === "activos") {
+        subtitulo = `${nombreUsuario} · Vence: ${formatearFecha(elemento.fechaEsperada)}`;
+    }
 
-        let subtitulo = `${nombreUsuario} · ${formatearFecha(prestamo.fechaInicio)}`;
-        if (tipo === "devoluciones") {
-            subtitulo = `${nombreUsuario} · Devuelto: ${formatearFecha(prestamo.fechaDevolucion)}`;
-        } else if (tipo === "historial") {
-            subtitulo = `${nombreUsuario} · ${nombreEstado} · ${formatearFecha(prestamo.fechaInicio)}` +
-                (prestamo.fechaDevolucion ? ` → ${formatearFecha(prestamo.fechaDevolucion)}` : "");
-        } else if (tipo === "activos") {
-            subtitulo = `${nombreUsuario} · Vence: ${formatearFecha(prestamo.fechaEsperada)}`;
-        }
-
-        return { icono, titulo: recurso, subtitulo };
-    });
+    return { icono, titulo: elemento.nombreProducto, subtitulo };
 }
 
 function pintarFilas(contenedor, filas, mensajeVacio) {
@@ -145,9 +103,21 @@ export async function initReporteDetalleController() {
     const btnVolver = document.getElementById("btnVolverReportes");
     if (btnVolver) btnVolver.addEventListener("click", () => window.loadView("reports"));
 
+    async function cargarPagina(pagina) {
+        const datos = await pedirPagina(tipo, null, null, pagina, TAMANO_PAGINA_DETALLE);
+        pintarFilas(lista, datos.content.map((elemento) => convertirFila(tipo, elemento)), info.vacio);
+        pintarPaginador(document.getElementById("paginadorReporteDetalle"), datos, async (destino) => {
+            try {
+                await cargarPagina(destino);
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo cargar la página", text: "Revisa tu conexión con el servidor." });
+            }
+        });
+    }
+
     try {
-        const filas = await construirDatosReporte(tipo, null, null);
-        pintarFilas(lista, filas, info.vacio);
+        await cargarPagina(0);
     } catch (error) {
         console.error(error);
         lista.innerHTML = '<p style="font-size:11px;color:var(--red);">No se pudo cargar el reporte. Revisa tu conexión con el servidor.</p>';
@@ -160,20 +130,15 @@ export function initModalGenerarReporte() {
 
     const btnCerrar = document.getElementById("btnCerrarModalReporte");
     const btnGenerar = document.getElementById("btnGenerarReporteModal");
-    const btnExportar = document.getElementById("btnExportarReporteModal");
-    const checksTipo = document.querySelectorAll('input[name="modalTipoReporte"]');
+    const selectTipo = document.getElementById("modalTipoReporte");
     const fechaInicio = document.getElementById("modalFechaInicio");
     const fechaFin = document.getElementById("modalFechaFin");
     const resultados = document.getElementById("modalResultadosReporte");
-
-    let documentoGenerado = "";
 
     function abrirModal() {
         modal.classList.remove("oculto");
         resultados.classList.add("oculto");
         resultados.innerHTML = "";
-        if (btnExportar) btnExportar.classList.add("oculto");
-        documentoGenerado = "";
     }
 
     function cerrarModal() {
@@ -192,19 +157,31 @@ export function initModalGenerarReporte() {
         if (evento.target === modal) cerrarModal();
     });
 
+    async function mostrarPagina(tipo, inicio, fin, pagina) {
+        const info = TITULOS_REPORTE[tipo];
+        const datos = await pedirPagina(tipo, inicio, fin, pagina, TAMANO_LOTE_MODAL);
+
+        resultados.classList.remove("oculto");
+        resultados.innerHTML = '<div data-filas-reporte></div><div class="paginador" data-paginador-reporte></div>';
+
+        pintarFilas(resultados.querySelector("[data-filas-reporte]"), datos.content.map((elemento) => convertirFila(tipo, elemento)), info.vacio);
+        pintarPaginador(resultados.querySelector("[data-paginador-reporte]"), datos, async (destino) => {
+            try {
+                await mostrarPagina(tipo, inicio, fin, destino);
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo cargar la página", text: "Revisa tu conexión con el servidor." });
+            }
+        });
+    }
+
     if (btnGenerar) {
         btnGenerar.addEventListener("click", async () => {
-            const tiposElegidos = Array.from(checksTipo).filter((check) => check.checked).map((check) => check.value);
+            const tipo = selectTipo.value;
             const inicio = fechaInicio.value;
             const fin = fechaFin.value;
 
-            if (tiposElegidos.length === 0) {
-                Swal.fire({ icon: "warning", title: "Selecciona al menos un reporte", text: "Marca uno o varios tipos de reporte a generar." });
-                return;
-            }
-
-            const necesitaFechas = tiposElegidos.some((tipo) => tipo !== "danados");
-            if (necesitaFechas && (!inicio || !fin)) {
+            if (tipo !== "danados" && (!inicio || !fin)) {
                 Swal.fire({ icon: "warning", title: "Selecciona el rango de fechas", text: "Elige la fecha de inicio y la fecha final del reporte." });
                 return;
             }
@@ -214,32 +191,11 @@ export function initModalGenerarReporte() {
             }
 
             try {
-                const secciones = await Promise.all(tiposElegidos.map(async (tipo) => {
-                    const info = TITULOS_REPORTE[tipo];
-                    const filas = await construirDatosReporte(tipo, inicio, fin);
-                    return { titulo: info.titulo, filas, vacio: info.vacio };
-                }));
-
-                resultados.classList.remove("oculto");
-                pintarSeccionesReporte(resultados, secciones);
-
-                documentoGenerado = secciones
-                    .map(({ titulo, filas, vacio }) => filasATexto(titulo, filas, vacio))
-                    .join("\n");
-
-                if (btnExportar) btnExportar.classList.remove("oculto");
+                await mostrarPagina(tipo, inicio, fin, 0);
             } catch (error) {
                 console.error(error);
                 Swal.fire({ icon: "error", title: "No se pudo generar el reporte", text: "Ocurrió un error al conectar con el servidor. Intenta de nuevo.", confirmButtonColor: "#dc3545" });
             }
-        });
-    }
-
-    if (btnExportar) {
-        btnExportar.addEventListener("click", () => {
-            if (!documentoGenerado) return;
-            const encabezado = `Reporte SIPTEC — generado el ${formatearFecha(new Date().toISOString().split("T")[0])}\n\n`;
-            descargarArchivo("reporte-siptec.txt", encabezado + documentoGenerado, "text/plain");
         });
     }
 }

@@ -1,24 +1,13 @@
-import { obtenerDetallesHerramienta, actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
+import { actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
-import { obtenerHerramientas } from "../services/herramientaService.js";
-import { obtenerPrestamos, actualizarPrestamo } from "../services/prestamoService.js";
+import { actualizarPrestamo, obtenerPrestamoActivoPorPieza } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
-import { obtenerDetallePrestamoHerramientas } from "../services/detallePrestamoHerramientaService.js";
+import { obtenerPiezaPorCodigo, obtenerPiezasPagina } from "../services/inventarioService.js";
 import { puedeGestionar } from "../utils/rol.js";
 
-let listaDetalles = [];
 let listaEstadosHerramienta = [];
-let listaHerramientas = [];
-let listaPrestamos = [];
 let listaEstadosPrestamo = [];
-let listaDetallesPrestamo = [];
 let detalleSeleccionado = null;
-
-function resolverPorCodigo(codigo) {
-    if (!codigo) return null;
-    const textoBusqueda = codigo.trim().toLowerCase();
-    return listaDetalles.find((item) => item.codInv.toLowerCase() === textoBusqueda);
-}
 
 export function initDevolucionController() {
     const equipoCodigo = document.getElementById("equipoCodigo");
@@ -56,20 +45,30 @@ export function initDevolucionController() {
         }
     }
 
-    function seleccionarPorCodigo(codigo) {
-        const encontrado = resolverPorCodigo(codigo);
-        if (encontrado) {
+    async function seleccionarPorCodigo(codigo) {
+        const texto = (codigo || "").trim();
+        if (!texto) {
+            detalleSeleccionado = null;
+            return null;
+        }
+
+        try {
+            const encontrado = await obtenerPiezaPorCodigo(texto);
             detalleSeleccionado = encontrado;
             equipoCodigo.value = encontrado.codInv;
-        } else {
+            return encontrado;
+        } catch (error) {
             detalleSeleccionado = null;
+            return null;
         }
-        return encontrado;
     }
 
     function conectarBusquedaCodigo() {
-        equipoCodigo.addEventListener("change", () => {
-            seleccionarPorCodigo(equipoCodigo.value);
+        equipoCodigo.addEventListener("change", async () => {
+            const encontrado = await seleccionarPorCodigo(equipoCodigo.value);
+            if (!encontrado && equipoCodigo.value.trim()) {
+                Swal.fire({ icon: "warning", title: "Equipo no encontrado", text: "No existe un equipo con el código " + equipoCodigo.value.trim() + "." });
+            }
         });
     }
 
@@ -79,15 +78,29 @@ export function initDevolucionController() {
         btnBuscarManual.addEventListener("click", async (evento) => {
             evento.preventDefault();
 
+            let piezasPrestadas = [];
+            try {
+                const pagina = await obtenerPiezasPagina({ page: 0, size: 50, estado: "EN PRESTAMO" });
+                piezasPrestadas = pagina.content;
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudieron cargar los equipos", text: "Revisa tu conexión con el servidor." });
+                return;
+            }
+
+            if (piezasPrestadas.length === 0) {
+                Swal.fire({ icon: "info", title: "Sin equipos prestados", text: "No hay equipos pendientes de devolución." });
+                return;
+            }
+
             const opciones = {};
-            listaDetalles.forEach((detalle) => {
-                const herramienta = listaHerramientas.find((item) => item.idHerramienta === detalle.idHerramienta);
-                const nombre = herramienta ? herramienta.nombreHerramienta : "Equipo";
-                opciones[detalle.codInv] = `${nombre} - ${detalle.codInv}`;
+            piezasPrestadas.forEach((pieza) => {
+                opciones[pieza.codInv] = `${pieza.nombreHerramienta} - ${pieza.codInv}`;
             });
 
             const { value: codigoElegido } = await Swal.fire({
                 title: "Selecciona un equipo",
+                text: "Equipos que están prestados actualmente",
                 input: "select",
                 inputOptions: opciones,
                 inputPlaceholder: "Selecciona un equipo",
@@ -95,7 +108,7 @@ export function initDevolucionController() {
             });
 
             if (codigoElegido) {
-                seleccionarPorCodigo(codigoElegido);
+                await seleccionarPorCodigo(codigoElegido);
             }
         });
     }
@@ -124,8 +137,7 @@ export function initDevolucionController() {
             return;
         }
 
-        const herramientaSeleccionada = listaHerramientas.find((item) => item.idHerramienta === detalleSeleccionado.idHerramienta);
-        const nombreEquipo = herramientaSeleccionada ? herramientaSeleccionada.nombreHerramienta : detalleSeleccionado.codInv;
+        const nombreEquipo = detalleSeleccionado.nombreHerramienta || detalleSeleccionado.codInv;
 
         const confirmacion = await Swal.fire({
             icon: "question",
@@ -149,30 +161,19 @@ export function initDevolucionController() {
                 codInv: detalleSeleccionado.codInv,
             });
 
-            listaDetalles = await obtenerDetallesHerramienta();
-
             const estadoDevuelto = listaEstadosPrestamo.find((item) => item.nombreEstado === "DEVUELTO");
-            const idEnPrestamo = (listaEstadosHerramienta.find((item) => item.nombreEstadoHerramienta === "EN PRESTAMO") || {}).id;
-
-            const lineaPrestamo = listaDetallesPrestamo.find((item) => item.detalleHerramienta === detalleSeleccionado.idDetalle
-                && listaPrestamos.some((p) => p.id === item.prestamo && !p.fechaDevolucion))
-                || listaDetallesPrestamo.find((item) => !item.detalleHerramienta && item.herramienta === detalleSeleccionado.idHerramienta
-                    && listaPrestamos.some((p) => p.id === item.prestamo && !p.fechaDevolucion));
-            const prestamoAsociado = lineaPrestamo ? listaPrestamos.find((item) => item.id === lineaPrestamo.prestamo) : null;
+            const prestamoAsociado = await obtenerPrestamoActivoPorPieza(detalleSeleccionado.idDetalle);
 
             let piezasPendientes = 0;
             if (prestamoAsociado) {
-                piezasPendientes = listaDetallesPrestamo
-                    .filter((item) => item.prestamo === prestamoAsociado.id && item.detalleHerramienta && item.detalleHerramienta !== detalleSeleccionado.idDetalle)
-                    .filter((item) => {
-                        const pieza = listaDetalles.find((d) => d.idDetalle === item.detalleHerramienta);
-                        return pieza && pieza.idEstadoHerramienta === idEnPrestamo;
-                    }).length;
+                piezasPendientes = prestamoAsociado.piezas
+                    .filter((pieza) => pieza.idDetalle !== detalleSeleccionado.idDetalle)
+                    .filter((pieza) => pieza.nombreEstadoHerramienta === "EN PRESTAMO").length;
             }
 
             if (prestamoAsociado && estadoDevuelto && piezasPendientes === 0) {
                 await actualizarPrestamo(prestamoAsociado.id, {
-                    usuario: prestamoAsociado.usuario,
+                    usuario: prestamoAsociado.idUsuario,
                     fechaInicio: prestamoAsociado.fechaInicio,
                     fechaEsperada: prestamoAsociado.fechaEsperada,
                     fechaDevolucion: fechaDevolucion.value,
@@ -208,15 +209,11 @@ export function initDevolucionController() {
 
     (async function cargarCatalogos() {
         try {
-            listaDetalles = await obtenerDetallesHerramienta();
             listaEstadosHerramienta = await obtenerEstadosHerramienta();
-            listaHerramientas = await obtenerHerramientas();
-            listaPrestamos = await obtenerPrestamos();
             listaEstadosPrestamo = await obtenerEstadosPrestamo();
-            listaDetallesPrestamo = await obtenerDetallePrestamoHerramientas();
 
             if (equipoCodigo.value) {
-                seleccionarPorCodigo(equipoCodigo.value);
+                await seleccionarPorCodigo(equipoCodigo.value);
             }
         } catch (error) {
             console.error(error);
