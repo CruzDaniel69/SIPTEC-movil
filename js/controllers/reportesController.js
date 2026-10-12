@@ -56,7 +56,7 @@ async function construirDatosReporte(tipo, inicio, fin) {
         obtenerDetallePrestamoAreas().catch(() => []),
         obtenerHerramientas(),
         obtenerAreas().catch(() => []),
-        obtenerUsuarios(),
+        obtenerUsuarios().catch(() => []), // el empleado no puede listar usuarios
     ]);
 
     let filtrados = prestamos;

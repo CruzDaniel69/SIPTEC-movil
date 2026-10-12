@@ -1,4 +1,11 @@
-import { iniciarSesion } from "../services/authService.js";
+import { iniciarSesion, haySesionActiva } from "../services/authService.js";
+
+const RUTA_APP = "pages/loadViews.html";
+
+async function redirigirSiYaHaySesion() {
+    if (!localStorage.getItem("siptec-usuario-id")) return;
+    if (await haySesionActiva()) window.location.replace(RUTA_APP);
+}
 
 export function initLoginController() {
     const formLogin = document.getElementById("login-form");
@@ -6,6 +13,11 @@ export function initLoginController() {
     const password = document.getElementById("password");
 
     if (!formLogin) return;
+
+    redirigirSiYaHaySesion();
+    window.addEventListener("pageshow", (evento) => {
+        if (evento.persisted) redirigirSiYaHaySesion();
+    });
 
     formLogin.addEventListener("submit", async (evento) => {
         evento.preventDefault();
@@ -32,7 +44,7 @@ export function initLoginController() {
             localStorage.setItem("siptec-usuario-correo", usuario.correoUsuario);
             localStorage.setItem("siptec-role", usuario.nombreRol);
 
-            window.location.href = "pages/loadViews.html";
+            window.location.replace(RUTA_APP);
 
         } catch (error) {
             console.error(error);

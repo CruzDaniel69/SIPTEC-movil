@@ -27,3 +27,13 @@ export async function iniciarSesion(correo, clave) {
         throw error;
     }
 }
+
+export async function haySesionActiva() {
+    try {
+        const response = await fetch(`${API_URL}/me`, { credentials: "include", cache: "no-store" });
+        return response.ok;
+    } catch (error) {
+        console.error("No se pudo verificar la sesión: " + error);
+        return false;
+    }
+}
