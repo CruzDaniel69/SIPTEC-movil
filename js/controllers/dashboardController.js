@@ -1,23 +1,14 @@
+import { colorVencimiento, formatearFechaHora as formatearFecha } from "../utils/fechas.js";
 import { usuarioActual } from "../utils/sesion.js";
 import { obtenerPrestamosPagina } from "../services/prestamoService.js";
 import { obtenerResumenDashboard } from "../services/dashboardService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
 
+const CLASE_VENCIMIENTO = { rojo: "due-red", amarillo: "due-yellow", verde: "due-green" };
+
+// Rojo si ya venció (contando la hora), amarillo si faltan 3 días o menos, verde el resto
 function calcularEstadoFecha(fechaEsperada) {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const esperada = new Date(fechaEsperada);
-
-    const diasRestantes = Math.round((esperada - hoy) / 86400000);
-
-    if (diasRestantes < 0) return "due-red";
-    if (diasRestantes <= 3) return "due-yellow";
-    return "due-green";
-}
-
-function formatearFecha(fechaISO) {
-    const fecha = new Date(fechaISO + "T00:00:00");
-    return fecha.toLocaleDateString("es-SV", { day: "2-digit", month: "short", year: "numeric" });
+    return CLASE_VENCIMIENTO[colorVencimiento(fechaEsperada)];
 }
 
 function fechaLocalISO(fecha) {

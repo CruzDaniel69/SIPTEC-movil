@@ -1,3 +1,4 @@
+import { fechasPrestamoValidas as fechasValidas, ahoraLocalISO } from "../utils/fechas.js";
 import { idUsuarioActual } from "../utils/sesion.js";
 import { agregarPrestamo } from "../services/prestamoService.js";
 import { obtenerAreas, agregarArea } from "../services/areaService.js";
@@ -50,23 +51,6 @@ function resolverPorNombre(texto, lista, campoNombre) {
     return lista.find((item) => item[campoNombre].toLowerCase().includes(textoBusqueda));
 }
 
-function fechasSonValidas(valorFechaInicio, valorFechaEsperada) {
-    const inicio = new Date(valorFechaInicio);
-    const esperada = new Date(valorFechaEsperada);
-
-    if (esperada <= inicio) {
-        return { valido: false, mensaje: "La fecha esperada debe ser posterior a la fecha de inicio." };
-    }
-
-    const unMesDespues = new Date(inicio);
-    unMesDespues.setMonth(unMesDespues.getMonth() + 1);
-
-    if (esperada > unMesDespues) {
-        return { valido: false, mensaje: "El préstamo no puede exceder 1 mes desde el inicio." };
-    }
-
-    return { valido: true };
-}
 
 export function initPrestamoController() {
     const tipoHerramienta = document.getElementById("tipoHerramienta");
@@ -84,8 +68,8 @@ export function initPrestamoController() {
 
     if (!btnRegistrarPrestamo) return;
 
-    const hoy = new Date().toISOString().split("T")[0];
-    fechaInicio.min = hoy;
+    // Se puede pedir un préstamo para hoy mismo: el mínimo es el momento actual
+    fechaInicio.min = ahoraLocalISO();
 
     function pintarUnidades(herramienta, codigoPreseleccionado) {
         if (!herramienta) {
@@ -134,7 +118,7 @@ export function initPrestamoController() {
             return { valido: false, mensaje: "Selecciona la fecha de inicio y la esperada." };
         }
 
-        const validacionFechas = fechasSonValidas(fechaInicio.value, fechaEsperada.value);
+        const validacionFechas = fechasValidas(fechaInicio.value, fechaEsperada.value);
         if (!validacionFechas.valido) {
             return validacionFechas;
         }
@@ -352,7 +336,7 @@ export function initPrestamoController() {
             return;
         }
 
-        const resultado = fechasSonValidas(fechaInicio.value, fechaEsperada.value);
+        const resultado = fechasValidas(fechaInicio.value, fechaEsperada.value);
         fechaEsperada.classList.toggle("fecha-invalida", !resultado.valido);
     }
 

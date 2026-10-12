@@ -45,14 +45,13 @@
 </div>
 
 <div class="caja-tarjeta">
-    <div class="titulo-tarjeta">2. Fecha del préstamo</div>
-    <div class="rango-fechas">
-        <input type="date" class="campo-fecha" id="fechaInicio" required>
-        <span>a</span>
-        <input type="date" class="campo-fecha" id="fechaEsperada" required>
-    </div>
+    <div class="titulo-tarjeta">2. Fecha y hora del préstamo</div>
+    <small style="display:block; margin-bottom:4px; font-size:9px; color:var(--ink-soft);">Inicio</small>
+    <input type="datetime-local" class="campo-fecha" id="fechaInicio" style="width:100%; margin-bottom:10px;" required>
+    <small style="display:block; margin-bottom:4px; font-size:9px; color:var(--ink-soft);">Devolución esperada</small>
+    <input type="datetime-local" class="campo-fecha" id="fechaEsperada" style="width:100%;" required>
     <small style="display:block; margin-top:6px; font-size:9px; color:var(--ink-soft);">
-        La fecha de devolución esperada no puede ser mayor a 1 mes desde el inicio.
+        La devolución debe ser posterior al inicio (puede ser el mismo día, con una hora mayor) y no pasar de 1 mes.
     </small>
 </div>
 

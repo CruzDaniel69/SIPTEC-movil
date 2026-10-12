@@ -1,3 +1,4 @@
+import { formatearFechaHora as formatearFecha } from "../utils/fechas.js";
 import { obtenerPrestamosPagina, actualizarPrestamo } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
@@ -6,11 +7,6 @@ import { pintarPaginador } from "../utils/paginacion.js";
 
 const TAMANO_LISTA = 10;
 
-function formatearFecha(fechaISO) {
-    if (!fechaISO) return "-";
-    const fecha = new Date(fechaISO + "T00:00:00");
-    return fecha.toLocaleDateString("es-SV", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 export async function initAprobarPrestamosController() {
     const lista = document.getElementById("listaSolicitudesPendientes");

@@ -1,3 +1,4 @@
+import { ahoraLocalISO } from "../utils/fechas.js";
 import { actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
 import { actualizarPrestamo, obtenerPrestamoActivoPorPieza } from "../services/prestamoService.js";
@@ -29,14 +30,14 @@ export function initDevolucionController() {
 
     detalleSeleccionado = null;
 
-    const hoy = new Date().toISOString().split("T")[0];
-    fechaDevolucion.max = hoy;
-    fechaDevolucion.value = hoy;
+    const ahora = ahoraLocalISO();
+    fechaDevolucion.max = ahora;
+    fechaDevolucion.value = ahora;
 
     function limpiarFormulario() {
         detalleSeleccionado = null;
         equipoCodigo.value = "";
-        fechaDevolucion.value = hoy;
+        fechaDevolucion.value = ahoraLocalISO();
         estadoDisponible.checked = true;
         if (observaciones) {
             observaciones.value = "";
@@ -125,7 +126,7 @@ export function initDevolucionController() {
         }
 
         if (!fechaDevolucion.value) {
-            Swal.fire({ icon: "warning", title: "Falta la fecha", text: "Selecciona la fecha de devolución." });
+            Swal.fire({ icon: "warning", title: "Falta la fecha", text: "Selecciona la fecha y la hora de devolución." });
             return;
         }
 

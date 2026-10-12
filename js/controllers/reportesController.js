@@ -1,3 +1,4 @@
+import { formatearFechaHora as formatearFecha } from "../utils/fechas.js";
 import { obtenerPrestamosPagina } from "../services/prestamoService.js";
 import { obtenerPiezasPagina } from "../services/inventarioService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
@@ -14,11 +15,6 @@ const TITULOS_REPORTE = {
     danados: { titulo: "Equipos con daño", subtitulo: "Equipos reportados con daño", vacio: "No hay equipos dañados reportados." },
 };
 
-function formatearFecha(fechaISO) {
-    if (!fechaISO) return "-";
-    const fecha = new Date(fechaISO + "T00:00:00");
-    return fecha.toLocaleDateString("es-SV", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 function pedirPagina(tipo, inicio, fin, pagina, tamano) {
     if (tipo === "danados") {
