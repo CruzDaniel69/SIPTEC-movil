@@ -746,10 +746,13 @@ body,
     backdrop-filter: none;
 }
 
-/* El dato principal va relleno de color sólido (azul profundo, de la misma familia que el fondo) */
-.cuadricula-2 > .tarjeta-estadistica:first-child {
-    background: #123a6b;
-    border-color: rgba(255, 255, 255, .12);
+/* El dato principal va relleno de azul sólido y vivo, sin transparencia (el mismo de la acción principal) */
+.cuadricula-2 > .tarjeta-estadistica:first-child,
+.tarjeta-accion.text-blue {
+    background: #1a5aa6;
+    border-color: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 /* Elementos pequeños dentro de una tarjeta o sobre el fondo: velo traslúcido, sin desenfoque propio */
@@ -1275,11 +1278,6 @@ textarea:focus-visible {
 /* =====================================================================
    El azul profundo del mosaico principal se repite en la acción principal y en el menú
    ===================================================================== */
-.tarjeta-accion.text-blue {
-    background: #123a6b;
-    border-color: rgba(255, 255, 255, .12);
-}
-
 .tarjeta-accion.text-blue i {
     background: rgba(255, 255, 255, .18);
     color: #fff;
