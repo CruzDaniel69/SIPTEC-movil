@@ -672,3 +672,181 @@ body,
     font-weight: 600;
     text-align: center;
 }
+
+/* =====================================================================
+   Cristal: el fondo se ve a través de las tarjetas, como en iOS.
+   Solo desenfoque y transparencia: sin reflejos, brillos ni degradados en los elementos.
+   ===================================================================== */
+
+:root {
+    --glass: rgba(34, 58, 88, .42);
+    --glass-fuerte: rgba(14, 30, 48, .70);
+    --glass-2: rgba(255, 255, 255, .08);
+    --glass-borde: rgba(255, 255, 255, .11);
+    --desenfoque: blur(22px) saturate(140%);
+
+    /* El mismo fondo de manchas suaves de la web, a escala de teléfono */
+    --fondo-app:
+        radial-gradient(ellipse 460px 400px at 5% 2%, rgba(25, 141, 230, .46), transparent 64%),
+        radial-gradient(ellipse 440px 400px at 100% 26%, rgba(138, 79, 214, .34), transparent 64%),
+        radial-gradient(ellipse 500px 420px at 40% 100%, rgba(40, 167, 69, .30), transparent 64%),
+        #08121d;
+}
+
+body,
+.marco-movil {
+    background: #08121d;
+}
+
+.pantalla-app,
+.pantalla-login {
+    background: var(--fondo-app);
+}
+
+.pantalla-app {
+    position: relative;
+}
+
+/* Superficies grandes: cristal con desenfoque */
+.caja-tarjeta,
+.tarjeta-seleccion-reporte,
+.interruptor-tipo,
+.tarjeta-login,
+.tarjeta-modal,
+.panel-lateral-perfil,
+.tarjeta-estadistica,
+.tarjeta-accion,
+.tarjeta-accion.text-blue,
+.tarjeta-accion.text-green,
+.tarjeta-accion.text-purple,
+.tarjeta-accion.text-orange,
+.fondo-azul,
+.fondo-verde,
+.fondo-naranja,
+.fondo-morado {
+    background: var(--glass);
+    border: 1px solid var(--glass-borde);
+    -webkit-backdrop-filter: var(--desenfoque);
+    backdrop-filter: var(--desenfoque);
+}
+
+/* Los bloques que solo traen mosaicos no llevan tarjeta propia */
+.caja-tarjeta:has(> .cuadricula-2),
+.caja-tarjeta:has(> .cuadricula-4) {
+    background: transparent;
+    border: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* El dato principal conserva su color, apenas transparente */
+.cuadricula-2 > .tarjeta-estadistica:first-child {
+    background: rgba(31, 111, 196, .82);
+    border-color: rgba(255, 255, 255, .14);
+}
+
+/* Elementos pequeños dentro de una tarjeta o sobre el fondo: velo traslúcido, sin desenfoque propio */
+.campo-simple,
+.caja-area-texto,
+.campo-fecha,
+.campo-tipo-reporte,
+.caja-buscador,
+.grupo-campo-login input,
+.icono-elemento,
+.boton-perfil-topbar,
+.cerrar-modal,
+.tarjeta-perfil,
+.boton-accion-gris,
+.boton-volver,
+.paginador-botones button,
+.tarjeta-seleccion-reporte i,
+.swal2-input,
+.swal2-file {
+    background: var(--glass-2);
+    border: 1px solid var(--glass-borde);
+}
+
+.paginador-botones button.activa {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.campo-fecha.fecha-invalida {
+    border-color: var(--red);
+}
+
+/* ---------- Menú inferior: barra flotante de cristal ---------- */
+.contenido {
+    padding-bottom: 112px;
+}
+
+.nav-inferior {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 14px;
+    width: auto;
+    max-width: 480px;
+    height: 72px;
+    margin: 0 auto;
+    padding: 0 14px;
+    border-radius: 36px;
+    background: var(--glass-fuerte);
+    border: 1px solid var(--glass-borde);
+    -webkit-backdrop-filter: var(--desenfoque);
+    backdrop-filter: var(--desenfoque);
+}
+
+.item-nav {
+    background: transparent;
+}
+
+.item-nav.activo {
+    background: var(--accent);
+}
+
+/* ---------- Ventanas y alertas ---------- */
+.overlay-modal {
+    background: rgba(4, 10, 18, .55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.tarjeta-modal,
+.panel-lateral-perfil {
+    background: var(--glass-fuerte);
+}
+
+.swal2-popup {
+    background: var(--glass-fuerte);
+    border: 1px solid var(--glass-borde);
+    -webkit-backdrop-filter: var(--desenfoque);
+    backdrop-filter: var(--desenfoque);
+}
+
+/* ---------- Marco de teléfono de presentación (solo escritorio con ratón) ---------- */
+@media (min-width: 900px) {
+    body {
+        background: #050b12;
+    }
+
+    .marco-movil {
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, .12);
+    }
+}
+
+/* En un teléfono o tableta (pantalla táctil) la app ocupa todo, sin marco, aunque la pantalla sea ancha */
+@media (min-width: 900px) and (pointer: coarse) {
+    body {
+        display: block;
+        padding: 0;
+        background: #08121d;
+    }
+
+    .marco-movil {
+        width: 100%;
+        height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
