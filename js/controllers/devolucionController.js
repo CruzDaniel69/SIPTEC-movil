@@ -5,7 +5,7 @@ import { actualizarPrestamo, obtenerPrestamoActivoPorPieza, subirEvidenciaPresta
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { obtenerPiezaPorCodigo, obtenerPiezasPagina } from "../services/inventarioService.js";
 import { puedeGestionar } from "../utils/rol.js";
-import { validarImagen } from "../utils/imagenes.js";
+import { validarImagen, conectarSelectorFoto } from "../utils/imagenes.js";
 
 let listaEstadosHerramienta = [];
 let listaEstadosPrestamo = [];
@@ -25,13 +25,14 @@ export function initDevolucionController() {
 
     if (!btnRegistrarDevolucion) return;
 
-    // Muestra el nombre de la foto elegida en la caja de evidencia
-    function mostrarEvidencia() {
-        const archivo = evidencia ? evidencia.files[0] : null;
-        if (cajaEvidencia) cajaEvidencia.classList.toggle("con-archivo", Boolean(archivo));
-        if (textoEvidencia) textoEvidencia.textContent = archivo ? archivo.name : "Tomar o elegir una foto";
-    }
-    if (evidencia) evidencia.addEventListener("change", mostrarEvidencia);
+    // Caja de la foto de evidencia: vista previa, nombre del archivo y botón para quitarla
+    const mostrarEvidencia = conectarSelectorFoto({
+        entrada: evidencia,
+        caja: cajaEvidencia,
+        texto: textoEvidencia,
+        vista: document.getElementById("vistaEvidencia"),
+        quitar: document.getElementById("quitarEvidencia"),
+    });
 
     if (!puedeGestionar(["ADMINISTRADOR", "IT"])) {
         btnRegistrarDevolucion.disabled = true;
@@ -104,7 +105,7 @@ export function initDevolucionController() {
             }
 
             if (piezasPrestadas.length === 0) {
-                Swal.fire({ icon: "info", title: "Sin equipos prestados", text: "No hay equipos pendientes de devolución." });
+                Swal.fire({ icon: "info", title: "Nada por devolver", text: "Ahora mismo no hay equipos prestados. Solo se pueden devolver equipos cuyo préstamo ya fue aprobado y entregado." });
                 return;
             }
 

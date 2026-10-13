@@ -21,3 +21,42 @@ export function miniatura(url, lado = 80) {
     const segura = urlDeImagenSegura(url);
     return segura ? segura.replace("/upload/", `/upload/c_fill,w_${lado},h_${lado},q_auto,f_auto/`) : "";
 }
+
+/**
+ * Conecta una caja de foto (vista previa, nombre del archivo y botón de quitar) con su campo de archivo oculto.
+ * Devuelve la función que repinta la caja, para llamarla después de limpiar el formulario.
+ */
+export function conectarSelectorFoto({ entrada, caja, texto, vista, quitar, textoVacio = "Tomar o elegir una foto" }) {
+    let urlVista = "";
+
+    function repintar() {
+        const archivo = entrada ? entrada.files[0] : null;
+
+        if (urlVista) {
+            URL.revokeObjectURL(urlVista);
+            urlVista = "";
+        }
+        if (archivo) urlVista = URL.createObjectURL(archivo);
+
+        if (caja) caja.classList.toggle("con-archivo", Boolean(archivo));
+        if (texto) texto.textContent = archivo ? archivo.name : textoVacio;
+        if (vista) {
+            if (urlVista) vista.src = urlVista;
+            else vista.removeAttribute("src");
+        }
+    }
+
+    if (entrada) entrada.addEventListener("change", repintar);
+
+    // El botón está dentro de la caja (un label): se evita que el toque abra el selector de archivos
+    if (quitar) {
+        quitar.addEventListener("click", (evento) => {
+            evento.preventDefault();
+            evento.stopPropagation();
+            if (entrada) entrada.value = "";
+            repintar();
+        });
+    }
+
+    return repintar;
+}

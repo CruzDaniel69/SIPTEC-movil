@@ -10,7 +10,7 @@
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">1. Seleccionar equipo</div>
     <div class="caja-buscador">
-        <input type="text" id="equipoCodigo" placeholder="Escanea el codigo del equipo">
+        <input type="text" id="equipoCodigo" placeholder="Escanea el código del equipo" autocomplete="off" autocapitalize="characters" spellcheck="false">
         <i class="fa-solid fa-magnifying-glass"></i>
     </div>
     <a class="enlace-azul-centrado" id="btnBuscarManual">Buscar manualmente</a>
@@ -47,11 +47,13 @@
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">5. Foto de evidencia (opcional)</div>
     <label class="caja-subir-foto" for="evidenciaDevolucion" id="cajaEvidencia">
+        <img class="vista-previa-foto" id="vistaEvidencia" alt="Vista previa de la foto">
         <i class="fa-solid fa-camera"></i>
         <div class="textos-subir">
             <span id="textoEvidencia">Tomar o elegir una foto</span>
             <small>JPG, PNG o WEBP · máximo 5 MB</small>
         </div>
+        <button type="button" class="quitar-foto" id="quitarEvidencia" aria-label="Quitar foto"><i class="fa-solid fa-xmark"></i></button>
     </label>
     <input type="file" class="campo-archivo-oculto" id="evidenciaDevolucion" accept="image/jpeg,image/png,image/webp">
 </div>

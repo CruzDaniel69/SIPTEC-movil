@@ -1018,7 +1018,7 @@ a:focus {
     outline: none;
 }
 
-/* Para quien navega con teclado, el foco sigue visible y redondeado */
+/* Para quien navega con teclado, el foco sigue visible (el contorno sigue la forma del propio elemento) */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -1026,7 +1026,16 @@ select:focus-visible,
 textarea:focus-visible {
     outline: 2px solid var(--accent-texto);
     outline-offset: 2px;
-    border-radius: 12px;
+}
+
+/* Un campo dentro de una caja (el buscador): se marca la caja entera, no el campo suelto */
+.caja-buscador input:focus,
+.caja-buscador input:focus-visible {
+    outline: none;
+}
+
+.caja-buscador:focus-within {
+    box-shadow: inset 0 0 0 1.5px var(--accent-texto);
 }
 
 /* Panel lateral flotante, sin pegarse a los bordes de la pantalla */
@@ -1118,7 +1127,7 @@ textarea:focus-visible {
     cursor: pointer;
 }
 
-.caja-subir-foto i {
+.caja-subir-foto > i {
     width: 44px;
     height: 44px;
     margin: 0;
@@ -1129,6 +1138,31 @@ textarea:focus-visible {
     background: var(--glass-2);
     color: var(--accent-texto);
     font-size: 18px;
+}
+
+/* Vista previa de la foto elegida: reemplaza al icono de la cámara */
+.vista-previa-foto {
+    display: none;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+/* Botón para quitar la foto elegida y poder escoger otra */
+.quitar-foto {
+    display: none;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: none;
+    border-radius: 50%;
+    background: var(--glass-2);
+    color: var(--ink);
+    font-size: 15px;
+    cursor: pointer;
 }
 
 .caja-subir-foto .textos-subir {
@@ -1158,9 +1192,16 @@ textarea:focus-visible {
     border-color: var(--accent);
 }
 
-.caja-subir-foto.con-archivo i {
-    background: var(--accent);
-    color: var(--accent-ink);
+.caja-subir-foto.con-archivo > i {
+    display: none;
+}
+
+.caja-subir-foto.con-archivo .vista-previa-foto {
+    display: block;
+}
+
+.caja-subir-foto.con-archivo .quitar-foto {
+    display: grid;
 }
 
 /* El campo de archivo real se oculta: lo reemplaza la caja de arriba */

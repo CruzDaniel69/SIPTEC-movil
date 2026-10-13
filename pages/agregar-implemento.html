@@ -52,11 +52,13 @@
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">6. Foto (opcional)</div>
     <label class="caja-subir-foto" for="fotoEquipo" id="cajaFotoEquipo">
+        <img class="vista-previa-foto" id="vistaFotoEquipo" alt="Vista previa de la foto">
         <i class="fa-solid fa-camera"></i>
         <div class="textos-subir">
             <span id="textoFotoEquipo">Tomar o elegir una foto</span>
             <small>JPG, PNG o WEBP · máximo 5 MB</small>
         </div>
+        <button type="button" class="quitar-foto" id="quitarFotoEquipo" aria-label="Quitar foto"><i class="fa-solid fa-xmark"></i></button>
     </label>
     <input type="file" class="campo-archivo-oculto" id="fotoEquipo" accept="image/jpeg,image/png,image/webp">
 </div>

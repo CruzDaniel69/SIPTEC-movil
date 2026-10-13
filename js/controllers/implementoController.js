@@ -6,7 +6,7 @@ import { agregarDetalleHerramienta } from "../services/detalleHerramientaService
 import { agregarHerramientaCategoria } from "../services/herramientaCategoriaService.js";
 import { obtenerCodigosExistentes } from "../services/inventarioService.js";
 import { retrasar } from "../utils/paginacion.js";
-import { validarImagen } from "../utils/imagenes.js";
+import { validarImagen, conectarSelectorFoto } from "../utils/imagenes.js";
 
 let listaEstadosHerramienta = [];
 let listaMarcas = [];
@@ -28,13 +28,14 @@ export function initImplementoController() {
 
     if (!btnGuardarImplemento) return;
 
-    // Muestra el nombre de la foto elegida en la caja de foto
-    function mostrarFotoEquipo() {
-        const archivo = fotoEquipo ? fotoEquipo.files[0] : null;
-        if (cajaFotoEquipo) cajaFotoEquipo.classList.toggle("con-archivo", Boolean(archivo));
-        if (textoFotoEquipo) textoFotoEquipo.textContent = archivo ? archivo.name : "Tomar o elegir una foto";
-    }
-    if (fotoEquipo) fotoEquipo.addEventListener("change", mostrarFotoEquipo);
+    // Caja de la foto del implemento: vista previa, nombre del archivo y botón para quitarla
+    const mostrarFotoEquipo = conectarSelectorFoto({
+        entrada: fotoEquipo,
+        caja: cajaFotoEquipo,
+        texto: textoFotoEquipo,
+        vista: document.getElementById("vistaFotoEquipo"),
+        quitar: document.getElementById("quitarFotoEquipo"),
+    });
 
     const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
 
