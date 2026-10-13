@@ -17,10 +17,11 @@
     --ink-soft: #8ea3b8;
 
     /* Acento de SIPTEC (el verde del botón de iniciar sesión) y colores de estado */
-    --accent: #6BB34D;
-    --accent-ink: #0b1622;
+    --accent: #2fb550;          /* verde vivo, menos "musgo" que el anterior */
+    --accent-ink: #ffffff;      /* texto sobre el acento */
+    --accent-texto: #5ddb7c;    /* el mismo verde, aclarado, para letras e iconos sobre fondo oscuro */
     --blue: #3b9cf0;
-    --green: #6BB34D;
+    --green: #2fb550;
     --orange: #f2a43a;
     --purple: #a07be6;
     --red: #ef5a6a;
@@ -93,7 +94,7 @@ body,
     content: attr(data-iniciales);
     font-size: 15px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--accent-texto);
 }
 
 .boton-perfil-topbar i {
@@ -122,7 +123,7 @@ body,
 
 .enlace-azul,
 .enlace-azul-centrado {
-    color: var(--accent);
+    color: var(--accent-texto);
 }
 
 /* ---------- Estadísticas: cuadrícula de mosaicos ---------- */
@@ -178,7 +179,7 @@ body,
 }
 
 .fondo-azul i { background: rgba(59, 156, 240, .16); color: #7cc0ff; }
-.fondo-verde i { background: rgba(107, 179, 77, .18); color: #9bd47f; }
+.fondo-verde i { background: rgba(47, 181, 80, .18); color: #7ee09a; }
 .fondo-naranja i { background: rgba(242, 164, 58, .16); color: #f6c36b; }
 .fondo-morado i { background: rgba(160, 123, 230, .18); color: #c2a8f2; }
 
@@ -234,7 +235,7 @@ body,
 }
 
 .tarjeta-accion.text-blue i { background: rgba(59, 156, 240, .16); color: #7cc0ff; }
-.tarjeta-accion.text-green i { background: rgba(107, 179, 77, .18); color: #9bd47f; }
+.tarjeta-accion.text-green i { background: rgba(47, 181, 80, .18); color: #7ee09a; }
 .tarjeta-accion.text-purple i { background: rgba(160, 123, 230, .18); color: #c2a8f2; }
 .tarjeta-accion.text-orange i { background: rgba(242, 164, 58, .16); color: #f6c36b; }
 
@@ -255,7 +256,7 @@ body,
     height: 44px;
     border-radius: 50%;
     background: var(--surface-2);
-    color: var(--accent);
+    color: var(--accent-texto);
     font-size: 16px;
 }
 
@@ -284,7 +285,7 @@ body,
 
 .fecha-elemento.due-red { background: rgba(239, 90, 106, .16); border: none; color: #ff8f9b; }
 .fecha-elemento.due-yellow { background: rgba(242, 164, 58, .16); border: none; color: #f6c36b; }
-.fecha-elemento.due-green { background: rgba(107, 179, 77, .16); border: none; color: #9bd47f; }
+.fecha-elemento.due-green { background: rgba(47, 181, 80, .16); border: none; color: #7ee09a; }
 
 .boton-aprobar,
 .boton-rechazar {
@@ -420,8 +421,8 @@ body,
 }
 
 #estadoDisponible:checked + .circulo-radio {
-    background-color: var(--accent);
-    border-color: var(--accent);
+    background-color: var(--accent-texto);
+    border-color: var(--accent-texto);
     box-shadow: none;
 }
 
@@ -434,7 +435,7 @@ body,
 .caja-subir-foto {
     background: var(--surface-2);
     border-color: var(--ink-soft);
-    color: var(--accent);
+    color: var(--accent-texto);
 }
 
 /* ---------- Interruptor Herramienta / Área (píldoras) ---------- */
@@ -483,7 +484,7 @@ body,
     place-items: center;
     border-radius: 50%;
     background: var(--surface-2);
-    color: var(--accent);
+    color: var(--accent-texto);
 }
 
 /* ---------- Menú inferior: botones circulares, el activo con el acento ---------- */
@@ -687,9 +688,9 @@ body,
 
     /* El mismo fondo de manchas suaves de la web, a escala de teléfono */
     --fondo-app:
-        radial-gradient(ellipse 460px 400px at 5% 2%, rgba(25, 141, 230, .46), transparent 64%),
-        radial-gradient(ellipse 440px 400px at 100% 26%, rgba(138, 79, 214, .34), transparent 64%),
-        radial-gradient(ellipse 500px 420px at 40% 100%, rgba(40, 167, 69, .30), transparent 64%),
+        radial-gradient(ellipse 460px 400px at 5% 2%, rgba(25, 141, 230, .32), transparent 64%),
+        radial-gradient(ellipse 440px 400px at 100% 26%, rgba(138, 79, 214, .22), transparent 64%),
+        radial-gradient(ellipse 500px 420px at 40% 100%, rgba(40, 167, 69, .20), transparent 64%),
         #08121d;
 }
 
@@ -768,7 +769,7 @@ body,
 
 .paginador-botones button.activa {
     background: var(--accent);
-    border-color: var(--accent);
+    border-color: var(--accent-texto);
 }
 
 .campo-fecha.fecha-invalida {
@@ -849,4 +850,211 @@ body,
         border-radius: 0;
         box-shadow: none;
     }
+}
+
+/* =====================================================================
+   Comodidad en teléfono: más aire y zonas táctiles de 44 px o más
+   ===================================================================== */
+
+.contenido {
+    padding: calc(28px + env(safe-area-inset-top, 0px)) 20px calc(124px + env(safe-area-inset-bottom, 0px));
+}
+
+.nav-inferior {
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+.encabezado {
+    margin-bottom: 8px;
+}
+
+.subtitulo-encabezado {
+    margin-bottom: 28px;
+}
+
+.caja-tarjeta {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.caja-tarjeta:has(> .cuadricula-2),
+.caja-tarjeta:has(> .cuadricula-4) {
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.titulo-tarjeta {
+    margin-bottom: 16px;
+}
+
+.cuadricula-2,
+.cuadricula-4,
+.cuadricula-4.dos-columnas {
+    gap: 14px;
+}
+
+.tarjeta-estadistica {
+    padding: 18px;
+    min-height: 126px;
+}
+
+.tarjeta-accion,
+.tarjeta-accion.text-blue,
+.tarjeta-accion.text-green,
+.tarjeta-accion.text-purple,
+.tarjeta-accion.text-orange {
+    padding: 16px;
+    min-height: 70px;
+}
+
+.fila-elemento,
+.tarjeta-solicitud {
+    padding: 16px 0;
+    min-height: 72px;
+}
+
+.tarjeta-seleccion-reporte {
+    padding: 18px 20px;
+    margin-bottom: 14px;
+}
+
+/* Botones grandes y separados de lo que tienen arriba */
+.boton-accion-azulmarino,
+.boton-accion-verde,
+.boton-accion-morado,
+.boton-accion-gris,
+.boton-iniciar-sesion {
+    min-height: 54px;
+    margin-top: 20px;
+}
+
+.boton-accion-contorno {
+    min-height: 52px;
+    margin-top: 14px;
+}
+
+.campo-simple,
+.campo-tipo-reporte,
+.caja-buscador,
+.grupo-campo-login input {
+    min-height: 52px;
+}
+
+.campo-fecha {
+    min-height: 50px;
+}
+
+.grupo-campo-login {
+    margin-bottom: 18px;
+}
+
+.interruptor-tipo label {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-radio {
+    min-height: 44px;
+    gap: 12px;
+}
+
+.grupo-radio {
+    gap: 6px;
+}
+
+.boton-aprobar,
+.boton-rechazar {
+    width: 46px;
+    height: 46px;
+}
+
+.boton-volver,
+.cerrar-modal {
+    width: 44px;
+    height: 44px;
+}
+
+.boton-perfil-topbar {
+    width: 48px;
+    height: 48px;
+}
+
+.paginador-botones {
+    gap: 8px;
+}
+
+.paginador-botones button {
+    min-width: 44px;
+    height: 44px;
+}
+
+.tarjeta-modal {
+    padding: 24px;
+}
+
+/* =====================================================================
+   Pulsar sin recuadros feos, y "Mi cuenta" con esquinas redondeadas
+   ===================================================================== */
+
+/* En Android, al tocar un botón el navegador dibuja un recuadro gris: se desactiva */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+a:focus {
+    outline: none;
+}
+
+/* Para quien navega con teclado, el foco sigue visible y redondeado */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--accent-texto);
+    outline-offset: 2px;
+    border-radius: 12px;
+}
+
+/* Panel lateral flotante, sin pegarse a los bordes de la pantalla */
+.overlay-modal.overlay-lateral {
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.panel-lateral-perfil {
+    width: min(84%, 320px);
+    border-radius: 28px;
+    padding: 24px 20px;
+    border: 1px solid var(--glass-borde);
+}
+
+/* La cabecera con el nombre y el correo era una caja de esquinas rectas */
+.tarjeta-perfil {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 18px;
+    margin-bottom: 24px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--glass-2);
+}
+
+.encabezado-modal {
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.nombre-perfil-grande {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.correo-perfil {
+    font-size: 13px;
+    margin-top: 0;
+    word-break: break-all;
 }
