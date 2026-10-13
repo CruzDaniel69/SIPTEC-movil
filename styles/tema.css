@@ -185,16 +185,6 @@ body,
 
 .fondo-naranja .number { color: var(--ink); }
 
-/* El primer mosaico va relleno de color: es el dato principal (el color exacto se fija más abajo, en la sección de cristal) */
-.cuadricula-2 > .tarjeta-estadistica:first-child i {
-    background: rgba(255, 255, 255, .18);
-    color: #fff;
-}
-
-.cuadricula-2 > .tarjeta-estadistica:first-child .label {
-    color: rgba(255, 255, 255, .82);
-}
-
 /* ---------- Accesos rápidos ---------- */
 .cuadricula-4,
 .cuadricula-4.dos-columnas {
@@ -746,15 +736,6 @@ body,
     backdrop-filter: none;
 }
 
-/* El dato principal va relleno de azul sólido y vivo, sin transparencia (el mismo de la acción principal) */
-.cuadricula-2 > .tarjeta-estadistica:first-child,
-.tarjeta-accion.text-blue {
-    background: #15479a;
-    border-color: transparent;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
 /* Elementos pequeños dentro de una tarjeta o sobre el fondo: velo traslúcido, sin desenfoque propio */
 .icono-elemento,
 .boton-perfil-topbar,
@@ -1273,18 +1254,6 @@ textarea:focus-visible {
     margin: 0;
     font-size: 14px;
     color: var(--ink-soft);
-}
-
-/* =====================================================================
-   El azul profundo del mosaico principal se repite en la acción principal y en el menú
-   ===================================================================== */
-.tarjeta-accion.text-blue i {
-    background: rgba(255, 255, 255, .18);
-    color: #fff;
-}
-
-.nav-inferior {
-    border-color: rgba(25, 141, 230, .30);
 }
 
 /* El campo de archivo real se oculta: lo reemplaza la caja de arriba */
