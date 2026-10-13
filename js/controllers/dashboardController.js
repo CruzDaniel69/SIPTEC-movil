@@ -37,7 +37,7 @@ export function initDashboardController() {
         listaPrestamosActivos.innerHTML = "";
 
         if (prestamos.length === 0) {
-            listaPrestamosActivos.innerHTML = '<p style="padding:8px 0;color:var(--ink-soft);font-size:12px;">No hay préstamos activos por el momento.</p>';
+            listaPrestamosActivos.innerHTML = '<div class="estado-vacio"><i class="fa-regular fa-circle-check"></i><p>No hay préstamos activos por el momento.</p></div>';
             return;
         }
 

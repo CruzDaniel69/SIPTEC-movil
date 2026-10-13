@@ -14,7 +14,7 @@
 
     /* Texto */
     --ink: #eef3f8;
-    --ink-soft: #8ea3b8;
+    --ink-soft: #a3b6c9;
 
     /* Acento de SIPTEC (el verde del botón de iniciar sesión) y colores de estado */
     --accent: #2fb550;          /* verde vivo, menos "musgo" que el anterior */
@@ -681,14 +681,16 @@ body,
 
 :root {
     /* Cristal oscuro y muy desenfocado, sin contorno (como la tarjeta de "Mi cuenta") */
-    --glass: rgba(5, 14, 25, .52);
-    --glass-fuerte: rgba(5, 13, 23, .76);
-    --glass-2: rgba(255, 255, 255, .07);
-    --glass-borde: rgba(255, 255, 255, .04);
-    --desenfoque: blur(30px) saturate(120%);
+    /* Tarjetas casi sólidas y claramente más claras que el fondo, para que se noten a simple vista */
+    --glass: rgba(27, 49, 75, .92);
+    --glass-fuerte: rgba(17, 33, 52, .96);
+    --glass-2: rgba(255, 255, 255, .09);
+    --glass-borde: rgba(255, 255, 255, .06);
+    --desenfoque: blur(18px) saturate(120%);
+    --sombra-tarjeta: 0 10px 26px rgba(0, 0, 0, .34);
 
     /* Campos de texto: sólidos y más oscuros que las tarjetas */
-    --campo: #071019;
+    --campo: #091522;
 
     /* Fondo de dos colores: el azul marino de siempre y un único azul difuminado en las esquinas */
     --fondo-app:
@@ -731,8 +733,9 @@ body,
 .fondo-naranja,
 .fondo-morado {
     background: var(--glass);
-    border: none;
+    border: 1px solid var(--glass-borde);
     border-radius: var(--radius-md);
+    box-shadow: var(--sombra-tarjeta);
     -webkit-backdrop-filter: var(--desenfoque);
     backdrop-filter: var(--desenfoque);
 }
@@ -742,14 +745,15 @@ body,
 .caja-tarjeta:has(> .cuadricula-4) {
     background: transparent;
     border: none;
+    box-shadow: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
 }
 
-/* El dato principal conserva su color, apenas transparente */
+/* El dato principal va relleno de color sólido */
 .cuadricula-2 > .tarjeta-estadistica:first-child {
-    background: rgba(31, 111, 196, .82);
-    border-color: rgba(255, 255, 255, .14);
+    background: #1f6fc4;
+    border-color: rgba(255, 255, 255, .12);
 }
 
 /* Elementos pequeños dentro de una tarjeta o sobre el fondo: velo traslúcido, sin desenfoque propio */
@@ -1153,16 +1157,28 @@ textarea:focus-visible {
 /* Botón para quitar la foto elegida y poder escoger otra */
 .quitar-foto {
     display: none;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
     flex: 0 0 auto;
     place-items: center;
     border: none;
     border-radius: 50%;
     background: var(--glass-2);
-    color: var(--ink);
-    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1;
     cursor: pointer;
+}
+
+.quitar-foto i {
+    display: block;
+    width: auto;
+    height: auto;
+    margin: 0;
+    background: none;
+    font-size: 12px;
+    line-height: 1;
+    color: inherit;
 }
 
 .caja-subir-foto .textos-subir {
@@ -1202,6 +1218,62 @@ textarea:focus-visible {
 
 .caja-subir-foto.con-archivo .quitar-foto {
     display: grid;
+}
+
+/* Con una foto elegida solo se muestra su nombre, en una línea */
+.caja-subir-foto.con-archivo small {
+    display: none;
+}
+
+/* =====================================================================
+   Accesos rápidos más grandes: icono arriba y texto abajo
+   ===================================================================== */
+.tarjeta-accion,
+.tarjeta-accion.text-blue,
+.tarjeta-accion.text-green,
+.tarjeta-accion.text-purple,
+.tarjeta-accion.text-orange {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 112px;
+    padding: 16px;
+    font-size: 14.5px;
+    line-height: 1.25;
+}
+
+.tarjeta-accion i {
+    width: 46px;
+    height: 46px;
+    font-size: 18px;
+}
+
+/* Mensaje cuando una lista no tiene elementos */
+.estado-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 0 10px;
+    text-align: center;
+}
+
+.estado-vacio i {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--glass-2);
+    color: var(--accent-texto);
+    font-size: 20px;
+}
+
+.estado-vacio p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
 }
 
 /* El campo de archivo real se oculta: lo reemplaza la caja de arriba */

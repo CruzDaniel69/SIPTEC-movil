@@ -44,7 +44,7 @@ export function initDashboardEmpleadoController() {
 
     function pintarActivos(prestamos) {
         if (prestamos.length === 0) {
-            lista.innerHTML = '<p style="padding:8px 0;color:var(--ink-soft);font-size:12px;">No tienes préstamos activos.</p>';
+            lista.innerHTML = '<div class="estado-vacio"><i class="fa-regular fa-circle-check"></i><p>No tienes préstamos activos.</p></div>';
             return;
         }
 
