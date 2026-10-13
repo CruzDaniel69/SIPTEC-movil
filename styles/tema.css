@@ -1479,3 +1479,19 @@ textarea:focus-visible {
     flex-direction: row;
     border-radius: 999px;
 }
+
+/* La barra inferior se queda azul oscuro también en modo claro */
+:root[data-tema="claro"] .nav-inferior {
+    background: rgba(11, 24, 40, .97);
+    border-color: rgba(255, 255, 255, .05);
+    box-shadow: 0 10px 26px rgba(11, 24, 40, .28);
+}
+
+:root[data-tema="claro"] .item-nav {
+    color: #a3b6c9;
+}
+
+:root[data-tema="claro"] .item-nav.activo {
+    background: #2fb550;
+    color: #ffffff;
+}
