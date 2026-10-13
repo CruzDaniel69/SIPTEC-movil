@@ -19,9 +19,19 @@ export function initDevolucionController() {
     const estadoDanado = document.getElementById("estadoDanado");
     const observaciones = document.getElementById("observacionesDevolucion");
     const evidencia = document.getElementById("evidenciaDevolucion");
+    const cajaEvidencia = document.getElementById("cajaEvidencia");
+    const textoEvidencia = document.getElementById("textoEvidencia");
     const btnRegistrarDevolucion = document.getElementById("btnRegistrarDevolucion");
 
     if (!btnRegistrarDevolucion) return;
+
+    // Muestra el nombre de la foto elegida en la caja de evidencia
+    function mostrarEvidencia() {
+        const archivo = evidencia ? evidencia.files[0] : null;
+        if (cajaEvidencia) cajaEvidencia.classList.toggle("con-archivo", Boolean(archivo));
+        if (textoEvidencia) textoEvidencia.textContent = archivo ? archivo.name : "Tomar o elegir una foto";
+    }
+    if (evidencia) evidencia.addEventListener("change", mostrarEvidencia);
 
     if (!puedeGestionar(["ADMINISTRADOR", "IT"])) {
         btnRegistrarDevolucion.disabled = true;
@@ -41,6 +51,7 @@ export function initDevolucionController() {
         equipoCodigo.value = "";
         fechaDevolucion.value = ahoraLocalISO();
         if (evidencia) evidencia.value = "";
+        mostrarEvidencia();
         estadoDisponible.checked = true;
         if (observaciones) {
             observaciones.value = "";

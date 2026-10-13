@@ -680,17 +680,22 @@ body,
    ===================================================================== */
 
 :root {
-    --glass: rgba(34, 58, 88, .42);
-    --glass-fuerte: rgba(14, 30, 48, .70);
-    --glass-2: rgba(255, 255, 255, .08);
-    --glass-borde: rgba(255, 255, 255, .11);
-    --desenfoque: blur(22px) saturate(140%);
+    /* Cristal oscuro y muy desenfocado, sin contorno (como la tarjeta de "Mi cuenta") */
+    --glass: rgba(5, 14, 25, .52);
+    --glass-fuerte: rgba(5, 13, 23, .76);
+    --glass-2: rgba(255, 255, 255, .07);
+    --glass-borde: rgba(255, 255, 255, .04);
+    --desenfoque: blur(30px) saturate(120%);
 
-    /* El mismo fondo de manchas suaves de la web, a escala de teléfono */
+    /* Campos de texto: sólidos y más oscuros que las tarjetas */
+    --campo: #071019;
+
+    /* Fondo de dos colores: el azul marino de siempre y un único azul difuminado en las esquinas */
     --fondo-app:
-        radial-gradient(ellipse 460px 400px at 5% 2%, rgba(25, 141, 230, .32), transparent 64%),
-        radial-gradient(ellipse 440px 400px at 100% 26%, rgba(138, 79, 214, .22), transparent 64%),
-        radial-gradient(ellipse 500px 420px at 40% 100%, rgba(40, 167, 69, .20), transparent 64%),
+        radial-gradient(ellipse 480px 420px at 0% 0%, rgba(25, 141, 230, .28), transparent 66%),
+        radial-gradient(ellipse 360px 340px at 100% 42%, rgba(25, 141, 230, .15), transparent 68%),
+        radial-gradient(ellipse 360px 340px at 0% 72%, rgba(25, 141, 230, .13), transparent 68%),
+        radial-gradient(ellipse 460px 420px at 100% 100%, rgba(25, 141, 230, .20), transparent 66%),
         #08121d;
 }
 
@@ -726,7 +731,8 @@ body,
 .fondo-naranja,
 .fondo-morado {
     background: var(--glass);
-    border: 1px solid var(--glass-borde);
+    border: none;
+    border-radius: var(--radius-md);
     -webkit-backdrop-filter: var(--desenfoque);
     backdrop-filter: var(--desenfoque);
 }
@@ -747,12 +753,6 @@ body,
 }
 
 /* Elementos pequeños dentro de una tarjeta o sobre el fondo: velo traslúcido, sin desenfoque propio */
-.campo-simple,
-.caja-area-texto,
-.campo-fecha,
-.campo-tipo-reporte,
-.caja-buscador,
-.grupo-campo-login input,
 .icono-elemento,
 .boton-perfil-topbar,
 .cerrar-modal,
@@ -760,16 +760,26 @@ body,
 .boton-accion-gris,
 .boton-volver,
 .paginador-botones button,
-.tarjeta-seleccion-reporte i,
+.tarjeta-seleccion-reporte i {
+    background: var(--glass-2);
+    border: none;
+}
+
+/* Campos de texto: sólidos y oscuros, para que se distingan bien de las tarjetas de cristal */
+.campo-simple,
+.caja-area-texto,
+.campo-fecha,
+.campo-tipo-reporte,
+.caja-buscador,
+.grupo-campo-login input,
 .swal2-input,
 .swal2-file {
-    background: var(--glass-2);
-    border: 1px solid var(--glass-borde);
+    background: var(--campo);
+    border: none;
 }
 
 .paginador-botones button.activa {
     background: var(--accent);
-    border-color: var(--accent-texto);
 }
 
 .campo-fecha.fecha-invalida {
@@ -1057,4 +1067,141 @@ textarea:focus-visible {
     font-size: 13px;
     margin-top: 0;
     word-break: break-all;
+}
+
+/* =====================================================================
+   Mosaico con tamaños distintos (dashboard de 4 datos): uno alto, dos apilados y uno ancho
+   ===================================================================== */
+.cuadricula-2 > .tarjeta-estadistica:first-child:nth-last-child(4) {
+    grid-row: span 2;
+    justify-content: space-between;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:first-child:nth-last-child(4) .number {
+    font-size: 54px;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:nth-child(4):last-child {
+    grid-column: 1 / -1;
+    min-height: 96px;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:nth-child(4):last-child i {
+    margin-bottom: 0;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:nth-child(4):last-child .number {
+    margin-bottom: 0;
+    margin-left: auto;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:nth-child(4):last-child .label {
+    flex: 1;
+}
+
+/* =====================================================================
+   Selector de foto (evidencia en la devolución, foto del implemento)
+   ===================================================================== */
+.caja-subir-foto {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    text-align: left;
+    background: var(--campo);
+    border: 1.5px dashed rgba(255, 255, 255, .16);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.caja-subir-foto i {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--glass-2);
+    color: var(--accent-texto);
+    font-size: 18px;
+}
+
+.caja-subir-foto .textos-subir {
+    min-width: 0;
+    flex: 1;
+}
+
+.caja-subir-foto span {
+    display: block;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.caja-subir-foto small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px !important;
+    color: var(--ink-soft);
+}
+
+.caja-subir-foto.con-archivo {
+    border-style: solid;
+    border-color: var(--accent);
+}
+
+.caja-subir-foto.con-archivo i {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+/* El campo de archivo real se oculta: lo reemplaza la caja de arriba */
+.campo-archivo-oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* =====================================================================
+   Ventana "Generar reporte": cabe en la pantalla sin deslizar
+   ===================================================================== */
+.tarjeta-modal {
+    max-width: 360px;
+    overflow-x: hidden;
+}
+
+.tarjeta-modal .rango-fechas {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+.tarjeta-modal .rango-fechas > span {
+    display: none;
+}
+
+.tarjeta-modal .campo-fecha,
+.tarjeta-modal .campo-tipo-reporte,
+.tarjeta-modal .boton-accion-gris {
+    width: 100%;
+    min-width: 0;
+}
+
+.tarjeta-modal .etiqueta-campo {
+    display: block;
+    margin: 14px 0 6px;
+}
+
+.tarjeta-modal .campo-fecha {
+    margin-bottom: 0;
 }

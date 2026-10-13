@@ -22,9 +22,19 @@ export function initImplementoController() {
     const categoriaSelect = document.getElementById("categoriaTexto");
     const descripcionEquipo = document.getElementById("descripcionEquipo");
     const fotoEquipo = document.getElementById("fotoEquipo");
+    const cajaFotoEquipo = document.getElementById("cajaFotoEquipo");
+    const textoFotoEquipo = document.getElementById("textoFotoEquipo");
     const btnGuardarImplemento = document.getElementById("btnGuardarImplemento");
 
     if (!btnGuardarImplemento) return;
+
+    // Muestra el nombre de la foto elegida en la caja de foto
+    function mostrarFotoEquipo() {
+        const archivo = fotoEquipo ? fotoEquipo.files[0] : null;
+        if (cajaFotoEquipo) cajaFotoEquipo.classList.toggle("con-archivo", Boolean(archivo));
+        if (textoFotoEquipo) textoFotoEquipo.textContent = archivo ? archivo.name : "Tomar o elegir una foto";
+    }
+    if (fotoEquipo) fotoEquipo.addEventListener("change", mostrarFotoEquipo);
 
     const patronTexto = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9.,()\-\s]+$/;
 
@@ -74,6 +84,7 @@ export function initImplementoController() {
     function limpiarFormulario() {
         nombreEquipo.value = "";
         if (fotoEquipo) fotoEquipo.value = "";
+        mostrarFotoEquipo();
         numeroCodigo.value = "";
         cantidadPiezas.value = 1;
         actualizarVistaPrevia();

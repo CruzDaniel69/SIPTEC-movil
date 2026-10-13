@@ -32,12 +32,11 @@
                         <option value="danados">Equipos con daño</option>
                     </select>
 
-                    <label class="etiqueta-campo">Rango de fechas</label>
-                    <div class="rango-fechas">
-                        <input type="date" class="campo-fecha" id="modalFechaInicio">
-                        <span style="font-size:10px;">a</span>
-                        <input type="date" class="campo-fecha" id="modalFechaFin">
-                    </div>
+                    <label class="etiqueta-campo" for="modalFechaInicio">Desde</label>
+                    <input type="date" class="campo-fecha" id="modalFechaInicio">
+
+                    <label class="etiqueta-campo" for="modalFechaFin">Hasta</label>
+                    <input type="date" class="campo-fecha" id="modalFechaFin">
 
                     <button class="boton-accion-gris" id="btnGenerarReporteModal">Generar reporte</button>
 

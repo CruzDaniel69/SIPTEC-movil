@@ -46,8 +46,14 @@
 
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">5. Foto de evidencia (opcional)</div>
-    <input type="file" class="campo-fecha" id="evidenciaDevolucion" accept="image/jpeg,image/png,image/webp" style="width:100%;">
-    <small style="display:block; margin-top:6px; font-size:9px; color:var(--ink-soft);">JPG, PNG o WEBP, máximo 5 MB.</small>
+    <label class="caja-subir-foto" for="evidenciaDevolucion" id="cajaEvidencia">
+        <i class="fa-solid fa-camera"></i>
+        <div class="textos-subir">
+            <span id="textoEvidencia">Tomar o elegir una foto</span>
+            <small>JPG, PNG o WEBP · máximo 5 MB</small>
+        </div>
+    </label>
+    <input type="file" class="campo-archivo-oculto" id="evidenciaDevolucion" accept="image/jpeg,image/png,image/webp">
 </div>
 
 <button class="boton-accion-verde" id="btnRegistrarDevolucion">Registrar devolución</button>

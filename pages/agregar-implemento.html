@@ -51,8 +51,14 @@
 
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">6. Foto (opcional)</div>
-    <input type="file" class="campo-simple" id="fotoEquipo" accept="image/jpeg,image/png,image/webp">
-    <small style="display:block; margin-top:6px; font-size:9px; color:var(--ink-soft);">JPG, PNG o WEBP, máximo 5 MB.</small>
+    <label class="caja-subir-foto" for="fotoEquipo" id="cajaFotoEquipo">
+        <i class="fa-solid fa-camera"></i>
+        <div class="textos-subir">
+            <span id="textoFotoEquipo">Tomar o elegir una foto</span>
+            <small>JPG, PNG o WEBP · máximo 5 MB</small>
+        </div>
+    </label>
+    <input type="file" class="campo-archivo-oculto" id="fotoEquipo" accept="image/jpeg,image/png,image/webp">
 </div>
 
 <button class="boton-accion-morado" id="btnGuardarImplemento">Guardar implemento</button>
