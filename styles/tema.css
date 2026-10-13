@@ -682,15 +682,15 @@ body,
 :root {
     /* Cristal oscuro y muy desenfocado, sin contorno (como la tarjeta de "Mi cuenta") */
     /* Tarjetas casi sólidas y claramente más claras que el fondo, para que se noten a simple vista */
-    --glass: rgba(27, 49, 75, .92);
-    --glass-fuerte: rgba(17, 33, 52, .96);
-    --glass-2: rgba(255, 255, 255, .09);
-    --glass-borde: rgba(255, 255, 255, .06);
+    --glass: rgba(20, 28, 57, .96);            /* #141C39 */
+    --glass-fuerte: rgba(14, 20, 43, .97);
+    --glass-2: rgba(255, 255, 255, .07);
+    --glass-borde: rgba(255, 255, 255, .05);
     --desenfoque: blur(18px) saturate(120%);
     --sombra-tarjeta: 0 10px 26px rgba(0, 0, 0, .34);
 
     /* Campos de texto: sólidos y más oscuros que las tarjetas */
-    --campo: #091522;
+    --campo: #0a1024;
 
     /* Fondo de dos colores: el azul marino de siempre y un único azul difuminado en las esquinas */
     --fondo-app:
