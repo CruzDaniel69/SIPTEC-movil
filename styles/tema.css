@@ -859,7 +859,7 @@ body,
 }
 
 .encabezado {
-    margin-bottom: 22px;
+    margin-bottom: 8px;
 }
 
 .subtitulo-encabezado {
@@ -1297,4 +1297,185 @@ textarea:focus-visible {
 
 .tarjeta-modal .campo-fecha {
     margin-bottom: 0;
+}
+
+/* =====================================================================
+   Menú inferior: el apartado activo se agranda y muestra su nombre
+   ===================================================================== */
+.nav-inferior {
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.item-nav {
+    flex: 0 0 54px;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: flex-basis .35s cubic-bezier(.3, .8, .3, 1), background-color .25s, color .25s;
+}
+
+.item-nav span {
+    display: block;
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: max-width .35s cubic-bezier(.3, .8, .3, 1), margin-left .35s, opacity .25s;
+}
+
+.item-nav.activo {
+    flex-basis: 128px;
+}
+
+.item-nav.activo span {
+    max-width: 80px;
+    margin-left: 8px;
+    opacity: 1;
+}
+
+/* Cambio de página: entra con un desvanecido corto */
+@keyframes pagina-entra {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+.contenido.pagina-entrando {
+    animation: pagina-entra .3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .contenido.pagina-entrando { animation: none; }
+    .item-nav, .item-nav span { transition: none; }
+}
+
+/* =====================================================================
+   Interruptor de tema en "Mi cuenta"
+   ===================================================================== */
+.fila-tema {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 52px;
+    padding: 0 4px 0 2px;
+    margin-bottom: 4px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.fila-tema i {
+    margin-right: 8px;
+    color: var(--accent-texto);
+}
+
+.interruptor-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.interruptor {
+    position: relative;
+    width: 50px;
+    height: 30px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--glass-2);
+    transition: background-color .25s;
+}
+
+.interruptor::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+    transition: transform .25s cubic-bezier(.3, .8, .3, 1);
+}
+
+.interruptor-input:checked + .interruptor {
+    background: var(--accent);
+}
+
+.interruptor-input:checked + .interruptor::after {
+    transform: translateX(20px);
+}
+
+.interruptor-input:focus-visible + .interruptor {
+    outline: 2px solid var(--accent-texto);
+    outline-offset: 2px;
+}
+
+/* =====================================================================
+   MODO CLARO: solo cambia la paleta; la estructura es la misma que la oscura
+   ===================================================================== */
+:root[data-tema="claro"] {
+    --bg: #eef3f9;
+    --surface: #ffffff;
+    --surface-2: #e6edf6;
+    --line: rgba(20, 40, 70, .1);
+    --ink: #14202e;
+    --ink-soft: #566678;
+    --accent: #1f9a40;
+    --accent-ink: #ffffff;
+    --accent-texto: #17803a;
+    --red: #d63848;
+
+    --glass: rgba(255, 255, 255, .92);
+    --glass-fuerte: rgba(255, 255, 255, .96);
+    --glass-2: rgba(20, 40, 70, .07);
+    --glass-borde: rgba(20, 40, 70, .06);
+    --sombra-tarjeta: 0 6px 20px rgba(30, 60, 100, .10);
+    --campo: #e8eef6;
+    --fondo-app:
+        radial-gradient(ellipse 480px 420px at 0% 0%, rgba(25, 141, 230, .16), transparent 66%),
+        radial-gradient(ellipse 360px 340px at 100% 42%, rgba(25, 141, 230, .09), transparent 68%),
+        radial-gradient(ellipse 360px 340px at 0% 72%, rgba(25, 141, 230, .08), transparent 68%),
+        radial-gradient(ellipse 460px 420px at 100% 100%, rgba(25, 141, 230, .12), transparent 66%),
+        #f1f5fa;
+
+    color-scheme: light;
+}
+
+:root[data-tema="claro"] body,
+:root[data-tema="claro"] .marco-movil {
+    background: #f1f5fa;
+}
+
+@media (min-width: 900px) {
+    :root[data-tema="claro"] body { background: #d9e2ee; }
+    :root[data-tema="claro"] .marco-movil { box-shadow: 0 0 0 1px rgba(20, 40, 70, .15); }
+}
+
+/* Iconos de color: tonos más oscuros para que se lean sobre blanco */
+:root[data-tema="claro"] .fondo-azul i,
+:root[data-tema="claro"] .tarjeta-accion.text-blue i { background: rgba(25, 141, 230, .14); color: #1566ad; }
+:root[data-tema="claro"] .fondo-verde i,
+:root[data-tema="claro"] .tarjeta-accion.text-green i { background: rgba(31, 154, 64, .14); color: #1a7a36; }
+:root[data-tema="claro"] .fondo-naranja i,
+:root[data-tema="claro"] .tarjeta-accion.text-orange i { background: rgba(230, 150, 30, .17); color: #a4600a; }
+:root[data-tema="claro"] .fondo-morado i,
+:root[data-tema="claro"] .tarjeta-accion.text-purple i { background: rgba(138, 79, 214, .14); color: #6d3fb8; }
+
+:root[data-tema="claro"] .fecha-elemento.due-red { background: rgba(214, 56, 72, .12); color: #b0233a; }
+:root[data-tema="claro"] .fecha-elemento.due-yellow { background: rgba(230, 150, 30, .16); color: #96590a; }
+:root[data-tema="claro"] .fecha-elemento.due-green { background: rgba(31, 154, 64, .13); color: #17803a; }
+:root[data-tema="claro"] .boton-rechazar { background: rgba(214, 56, 72, .12); color: #b0233a; }
+:root[data-tema="claro"] .campo-fecha.fecha-invalida { color: #b0233a; }
+
+:root[data-tema="claro"] .caja-subir-foto { border-color: rgba(20, 40, 70, .28); }
+:root[data-tema="claro"] .caja-subir-foto.con-archivo { border-color: var(--accent); }
+
+:root[data-tema="claro"] .overlay-modal { background: rgba(20, 40, 70, .35); }
+
+.item-nav {
+    flex-direction: row;
+    border-radius: 999px;
 }

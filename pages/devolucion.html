@@ -7,7 +7,7 @@
 </div>
 
 <div class="caja-tarjeta">
-    <div class="titulo-tarjeta">1. Seleccionar equipo</div>
+    <div class="titulo-tarjeta">Seleccionar equipo</div>
     <div class="caja-buscador">
         <input type="text" id="equipoCodigo" placeholder="Escanea el código del equipo" autocomplete="off" autocapitalize="characters" spellcheck="false">
         <i class="fa-solid fa-magnifying-glass"></i>
@@ -16,12 +16,12 @@
 </div>
 
 <div class="caja-tarjeta">
-    <div class="titulo-tarjeta">2. Fecha y hora de devolución</div>
+    <div class="titulo-tarjeta">Fecha y hora de devolución</div>
     <input type="datetime-local" class="campo-fecha" id="fechaDevolucion" style="width:100%;" required>
 </div>
 
 <div class="caja-tarjeta">
-    <div class="titulo-tarjeta">3. Estado del equipo</div>
+    <div class="titulo-tarjeta">Estado del equipo</div>
     <div class="grupo-radio" id="estadoEquipoGroup">
         <label class="item-radio">
             <input type="radio" name="estadoEquipo" id="estadoDisponible" value="DISPONIBLE" checked>
@@ -37,14 +37,14 @@
 </div>
 
 <div class="caja-tarjeta">
-    <div class="titulo-tarjeta">4. Observaciones (opcional)</div>
+    <div class="titulo-tarjeta">Observaciones (opcional)</div>
     <textarea class="caja-area-texto" placeholder="Escribe observaciones..." maxlength="150"
         oninput="document.getElementById('c2').innerText = this.value.length"></textarea>
     <div class="contador-caracteres"><span id="c2">0</span>/150</div>
 </div>
 
 <div class="caja-tarjeta">
-    <div class="titulo-tarjeta">5. Foto de evidencia (opcional)</div>
+    <div class="titulo-tarjeta">Foto de evidencia (opcional)</div>
     <label class="caja-subir-foto" for="evidenciaDevolucion" id="cajaEvidencia">
         <img class="vista-previa-foto" id="vistaEvidencia" alt="Vista previa de la foto">
         <i class="fa-solid fa-camera"></i>

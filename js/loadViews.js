@@ -5,6 +5,7 @@ import { initDashboardEmpleadoController } from "./controllers/dashboardEmpleado
 import { initReportesController, initReporteDetalleController, initModalGenerarReporte } from "./controllers/reportesController.js";
 import { initDevolucionController } from "./controllers/devolucionController.js";
 import { initImplementoController } from "./controllers/implementoController.js";
+import { temaGuardado, aplicarTema } from "./utils/tema.js";
 import { cargarSesion, cerrarSesionCompleta, usuarioActual, rolActual } from "./utils/sesion.js";
 
 // Pregunta a la API quién es el usuario de la cookie; desde aquí el resto lo lee de memoria
@@ -50,6 +51,12 @@ async function loadView(viewName, checkId, fillId, fillValue) {
 
         const html = await respuesta.text();
         viewRoot.innerHTML = html;
+
+        // Transición: la página nueva entra con un desvanecido suave
+        viewRoot.classList.remove("pagina-entrando");
+        void viewRoot.offsetWidth;
+        viewRoot.classList.add("pagina-entrando");
+        viewRoot.scrollTop = 0;
 
         if (checkId) {
             const radio = document.getElementById(checkId);
@@ -123,6 +130,12 @@ function initPanelPerfil() {
     document.addEventListener("click", (evento) => {
         if (evento.target.closest("#btnAbrirPerfil")) abrirPanel();
     });
+
+    const interruptorTema = document.getElementById("interruptorTema");
+    if (interruptorTema) {
+        interruptorTema.checked = temaGuardado() === "claro";
+        interruptorTema.addEventListener("change", () => aplicarTema(interruptorTema.checked ? "claro" : "oscuro"));
+    }
 
     if (btnCerrarPerfil) btnCerrarPerfil.addEventListener("click", cerrarPanel);
 
