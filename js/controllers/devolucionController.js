@@ -1,10 +1,11 @@
 import { ahoraLocalISO } from "../utils/fechas.js";
 import { actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
-import { actualizarPrestamo, obtenerPrestamoActivoPorPieza } from "../services/prestamoService.js";
+import { actualizarPrestamo, obtenerPrestamoActivoPorPieza, subirEvidenciaPrestamo } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { obtenerPiezaPorCodigo, obtenerPiezasPagina } from "../services/inventarioService.js";
 import { puedeGestionar } from "../utils/rol.js";
+import { validarImagen } from "../utils/imagenes.js";
 
 let listaEstadosHerramienta = [];
 let listaEstadosPrestamo = [];
@@ -17,6 +18,7 @@ export function initDevolucionController() {
     const estadoDisponible = document.getElementById("estadoDisponible");
     const estadoDanado = document.getElementById("estadoDanado");
     const observaciones = document.getElementById("observacionesDevolucion");
+    const evidencia = document.getElementById("evidenciaDevolucion");
     const btnRegistrarDevolucion = document.getElementById("btnRegistrarDevolucion");
 
     if (!btnRegistrarDevolucion) return;
@@ -38,6 +40,7 @@ export function initDevolucionController() {
         detalleSeleccionado = null;
         equipoCodigo.value = "";
         fechaDevolucion.value = ahoraLocalISO();
+        if (evidencia) evidencia.value = "";
         estadoDisponible.checked = true;
         if (observaciones) {
             observaciones.value = "";
@@ -138,6 +141,13 @@ export function initDevolucionController() {
             return;
         }
 
+        const fotoEvidencia = evidencia ? evidencia.files[0] : null;
+        const problemaFoto = validarImagen(fotoEvidencia);
+        if (problemaFoto) {
+            Swal.fire({ icon: "warning", title: "Foto inválida", text: problemaFoto });
+            return;
+        }
+
         const nombreEquipo = detalleSeleccionado.nombreHerramienta || detalleSeleccionado.codInv;
 
         const confirmacion = await Swal.fire({
@@ -182,10 +192,25 @@ export function initDevolucionController() {
                 });
             }
 
+            // La evidencia se sube aparte: si falla, la devolución ya quedó registrada y solo se avisa
+            let evidenciaFallo = false;
+            if (fotoEvidencia && prestamoAsociado) {
+                try {
+                    await subirEvidenciaPrestamo(prestamoAsociado.id, fotoEvidencia);
+                } catch (error) {
+                    console.error(error);
+                    evidenciaFallo = true;
+                }
+            }
+
+            const textos = [];
+            if (piezasPendientes > 0) textos.push(`Todavía quedan ${piezasPendientes} pieza(s) de este préstamo por devolver.`);
+            if (evidenciaFallo) textos.push("La foto de evidencia no se pudo subir.");
+
             Swal.fire({
-                icon: "success",
+                icon: evidenciaFallo ? "warning" : "success",
                 title: "¡Devolución registrada!",
-                text: piezasPendientes > 0 ? `Todavía quedan ${piezasPendientes} pieza(s) de este préstamo por devolver.` : undefined,
+                text: textos.length > 0 ? textos.join(" ") : undefined,
                 confirmButtonColor: "#28a745",
             });
             limpiarFormulario();

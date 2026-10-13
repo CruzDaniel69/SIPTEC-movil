@@ -1,4 +1,4 @@
-import { agregarHerramienta } from "../services/herramientaService.js";
+import { agregarHerramienta, subirImagenHerramienta } from "../services/herramientaService.js";
 import { obtenerMarcas, agregarMarca } from "../services/marcaService.js";
 import { obtenerCategorias, agregarCategoria } from "../services/categoriaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
@@ -6,6 +6,7 @@ import { agregarDetalleHerramienta } from "../services/detalleHerramientaService
 import { agregarHerramientaCategoria } from "../services/herramientaCategoriaService.js";
 import { obtenerCodigosExistentes } from "../services/inventarioService.js";
 import { retrasar } from "../utils/paginacion.js";
+import { validarImagen } from "../utils/imagenes.js";
 
 let listaEstadosHerramienta = [];
 let listaMarcas = [];
@@ -20,6 +21,7 @@ export function initImplementoController() {
     const marcaSelect = document.getElementById("marcaTexto");
     const categoriaSelect = document.getElementById("categoriaTexto");
     const descripcionEquipo = document.getElementById("descripcionEquipo");
+    const fotoEquipo = document.getElementById("fotoEquipo");
     const btnGuardarImplemento = document.getElementById("btnGuardarImplemento");
 
     if (!btnGuardarImplemento) return;
@@ -71,6 +73,7 @@ export function initImplementoController() {
 
     function limpiarFormulario() {
         nombreEquipo.value = "";
+        if (fotoEquipo) fotoEquipo.value = "";
         numeroCodigo.value = "";
         cantidadPiezas.value = 1;
         actualizarVistaPrevia();
@@ -166,6 +169,10 @@ export function initImplementoController() {
         if (!categoriaSelect.value || categoriaSelect.value === "__nuevo__") {
             return { valido: false, mensaje: "Selecciona una categoría." };
         }
+        const problemaFoto = validarImagen(fotoEquipo ? fotoEquipo.files[0] : null);
+        if (problemaFoto) {
+            return { valido: false, mensaje: problemaFoto };
+        }
         if (descripcionEquipo && descripcionEquipo.value.trim() && !patronTexto.test(descripcionEquipo.value.trim())) {
             return { valido: false, mensaje: "La descripción solo admite letras, números, espacios y los signos . , ( ) -" };
         }
@@ -214,10 +221,24 @@ export function initImplementoController() {
                 idHerramienta: nuevaHerramienta.idHerramienta,
             });
 
+            // La foto se sube aparte: si falla, el implemento ya quedó guardado y solo se avisa
+            let fotoFallo = false;
+            const foto = fotoEquipo ? fotoEquipo.files[0] : null;
+            if (foto) {
+                try {
+                    await subirImagenHerramienta(nuevaHerramienta.idHerramienta, foto);
+                } catch (error) {
+                    console.error(error);
+                    fotoFallo = true;
+                }
+            }
+
             Swal.fire({
-                icon: "success",
+                icon: fotoFallo ? "warning" : "success",
                 title: "¡Implemento guardado!",
-                text: "Se agregó correctamente al inventario.",
+                text: fotoFallo
+                    ? "Se agregó al inventario, pero la foto no se pudo subir. Agrégala después desde la web."
+                    : "Se agregó correctamente al inventario.",
                 confirmButtonColor: "#8a4fd6",
             });
             limpiarFormulario();

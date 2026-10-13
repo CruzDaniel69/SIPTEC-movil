@@ -99,3 +99,17 @@ export async function eliminarHerramienta(id) {
         throw error;
     }
 }
+
+/** Sube o reemplaza la foto de una herramienta (el archivo viaja como multipart, sin Content-Type manual). */
+export async function subirImagenHerramienta(id, archivo) {
+    const datos = new FormData();
+    datos.append("imagen", archivo);
+
+    const response = await fetch(`${API_URL}/${id}/imagen`, { credentials: "include", method: "POST", body: datos });
+    const resultado = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw new Error((resultado && resultado.message) || "Error al subir la foto (" + response.status + ")");
+    }
+    return resultado.data;
+}
