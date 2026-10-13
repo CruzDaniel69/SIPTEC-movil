@@ -98,6 +98,8 @@ function mostrarNombreUsuario() {
 
     const { nombreUsuario = "", apellidoUsuario = "" } = usuarioActual() || {};
     nombreTopbar.textContent = `${nombreUsuario} ${apellidoUsuario}`.trim();
+    // El avatar del encabezado muestra las iniciales (tema.css las lee de este atributo)
+    nombreTopbar.dataset.iniciales = `${nombreUsuario.charAt(0)}${apellidoUsuario.charAt(0)}`.toUpperCase();
 }
 
 function initPanelPerfil() {

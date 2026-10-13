@@ -1,0 +1,674 @@
+/* =====================================================================
+   SIPTEC móvil · tema oscuro
+   Se carga DESPUÉS de styles.css y reemplaza colores y componentes.
+   Para volver al diseño anterior basta con quitar el <link> de este archivo.
+   Sin brillos, sin degradados y sin sombras de color: superficies planas.
+   ===================================================================== */
+
+:root {
+    /* Superficies */
+    --bg: #0b1622;
+    --surface: #122234;
+    --surface-2: #1a2e44;
+    --line: rgba(255, 255, 255, .08);
+
+    /* Texto */
+    --ink: #eef3f8;
+    --ink-soft: #8ea3b8;
+
+    /* Acento de SIPTEC (el verde del botón de iniciar sesión) y colores de estado */
+    --accent: #6BB34D;
+    --accent-ink: #0b1622;
+    --blue: #3b9cf0;
+    --green: #6BB34D;
+    --orange: #f2a43a;
+    --purple: #a07be6;
+    --red: #ef5a6a;
+
+    /* Nombres que ya usa styles.css: al cambiarlos, todo el CSS anterior se pinta con la paleta nueva */
+    --paper: var(--bg);
+    --card: var(--surface);
+    --navy: #0b1622;
+    --navy-soft: var(--surface-2);
+
+    --radius-lg: 22px;
+    --radius-md: 18px;
+    --radius-sm: 14px;
+    --shadow-card: none;
+
+    color-scheme: dark;
+}
+
+body,
+.marco-movil {
+    background-color: var(--bg);
+    color: var(--ink);
+}
+
+/* Contenido de la app: sin los resplandores de fondo del diseño anterior */
+.pantalla-app {
+    background: var(--bg);
+}
+
+.contenido {
+    padding: 24px 18px 28px;
+}
+
+/* ---------- Encabezado: saludo grande y avatar con iniciales ---------- */
+.encabezado {
+    align-items: center;
+    gap: 12px;
+    padding-left: 0;
+    margin-bottom: 6px;
+}
+
+.encabezado h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.12;
+}
+
+.subtitulo-encabezado {
+    font-size: 14px;
+    padding-left: 0;
+    margin-bottom: 22px;
+}
+
+.boton-perfil-topbar {
+    width: 46px;
+    height: 46px;
+    margin-top: 0;
+    border-radius: 50%;
+    background: var(--surface-2);
+    justify-content: center;
+}
+
+/* El nombre se oculta y en su lugar se muestran las iniciales (las pone loadViews.js en data-iniciales) */
+.nombre-perfil-topbar {
+    font-size: 0;
+}
+
+.nombre-perfil-topbar::after {
+    content: attr(data-iniciales);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.boton-perfil-topbar i {
+    display: none;
+}
+
+/* ---------- Tarjetas ---------- */
+.caja-tarjeta {
+    background: var(--surface);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: none;
+}
+
+.titulo-tarjeta {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.encabezado-tarjeta {
+    margin-bottom: 14px;
+}
+
+.enlace-azul,
+.enlace-azul-centrado {
+    color: var(--accent);
+}
+
+/* ---------- Estadísticas: cuadrícula de mosaicos ---------- */
+.cuadricula-2 {
+    gap: 12px;
+}
+
+.tarjeta-estadistica {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 16px;
+    min-height: 118px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.tarjeta-estadistica i {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 14px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+}
+
+.tarjeta-estadistica .number {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+    color: var(--ink);
+}
+
+.tarjeta-estadistica .label {
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--ink-soft);
+}
+
+/* Cada color de estado solo tiñe el icono */
+.fondo-azul,
+.fondo-verde,
+.fondo-naranja,
+.fondo-morado {
+    background: var(--surface-2);
+    border: none;
+    color: var(--ink);
+}
+
+.fondo-azul i { background: rgba(59, 156, 240, .16); color: #7cc0ff; }
+.fondo-verde i { background: rgba(107, 179, 77, .18); color: #9bd47f; }
+.fondo-naranja i { background: rgba(242, 164, 58, .16); color: #f6c36b; }
+.fondo-morado i { background: rgba(160, 123, 230, .18); color: #c2a8f2; }
+
+.fondo-naranja .number { color: var(--ink); }
+
+/* El primer mosaico va relleno de color: es el dato principal */
+.cuadricula-2 > .tarjeta-estadistica:first-child {
+    background: #1f6fc4;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:first-child i {
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:first-child .label {
+    color: rgba(255, 255, 255, .82);
+}
+
+/* ---------- Accesos rápidos ---------- */
+.cuadricula-4,
+.cuadricula-4.dos-columnas {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.tarjeta-accion,
+.tarjeta-accion.text-blue,
+.tarjeta-accion.text-green,
+.tarjeta-accion.text-purple,
+.tarjeta-accion.text-orange {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    background: var(--surface-2);
+    border: none;
+    color: var(--ink);
+    border-radius: var(--radius-md);
+}
+
+.tarjeta-accion i {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+}
+
+.tarjeta-accion.text-blue i { background: rgba(59, 156, 240, .16); color: #7cc0ff; }
+.tarjeta-accion.text-green i { background: rgba(107, 179, 77, .18); color: #9bd47f; }
+.tarjeta-accion.text-purple i { background: rgba(160, 123, 230, .18); color: #c2a8f2; }
+.tarjeta-accion.text-orange i { background: rgba(242, 164, 58, .16); color: #f6c36b; }
+
+/* ---------- Listas ---------- */
+.fila-elemento,
+.tarjeta-solicitud {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.fila-elemento:last-child,
+.tarjeta-solicitud:last-child {
+    border-bottom: none;
+}
+
+.icono-elemento {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--accent);
+    font-size: 16px;
+}
+
+.info-elemento {
+    padding-left: 10px;
+}
+
+.titulo-elemento {
+    font-size: 14.5px;
+    font-weight: 600;
+}
+
+.subtitulo-elemento {
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.vencimiento-elemento {
+    font-size: 11px;
+}
+
+.fecha-elemento {
+    font-size: 12px;
+    padding: 5px 12px;
+}
+
+.fecha-elemento.due-red { background: rgba(239, 90, 106, .16); border: none; color: #ff8f9b; }
+.fecha-elemento.due-yellow { background: rgba(242, 164, 58, .16); border: none; color: #f6c36b; }
+.fecha-elemento.due-green { background: rgba(107, 179, 77, .16); border: none; color: #9bd47f; }
+
+.boton-aprobar,
+.boton-rechazar {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+.boton-aprobar { background: var(--accent); color: var(--accent-ink); }
+.boton-rechazar { background: rgba(239, 90, 106, .18); color: #ff8f9b; }
+
+/* ---------- Botones ---------- */
+.boton-accion-azulmarino,
+.boton-accion-verde,
+.boton-accion-morado,
+.boton-accion-gris,
+.boton-iniciar-sesion {
+    padding: 15px;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 999px;
+}
+
+.boton-accion-verde,
+.boton-accion-morado,
+.boton-accion-azulmarino,
+.boton-iniciar-sesion {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.boton-accion-gris {
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.boton-accion-contorno {
+    padding: 14px;
+    font-size: 15px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+}
+
+.boton-accion-contorno:active {
+    background: var(--surface-2);
+}
+
+.boton-volver {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    background: var(--surface-2);
+    border: none;
+    box-shadow: none;
+}
+
+/* ---------- Campos de formulario ---------- */
+.campo-simple,
+.caja-area-texto,
+.campo-fecha,
+.campo-tipo-reporte,
+.caja-buscador {
+    background: var(--surface-2);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+}
+
+.campo-simple,
+.campo-tipo-reporte {
+    padding: 14px 16px;
+    font-size: 15px;
+}
+
+.campo-fecha {
+    padding: 13px 14px;
+    font-size: 14px;
+    text-align: left;
+}
+
+.campo-fecha.fecha-invalida {
+    color: #ff8f9b;
+    box-shadow: inset 0 0 0 1.5px var(--red);
+}
+
+.caja-buscador {
+    padding: 13px 16px;
+}
+
+.caja-buscador input {
+    font-size: 15px;
+}
+
+.caja-buscador i {
+    font-size: 14px;
+}
+
+.caja-area-texto {
+    padding: 14px 16px;
+    font-size: 15px;
+    height: 96px;
+}
+
+::placeholder {
+    color: var(--ink-soft);
+    opacity: 1;
+}
+
+.contador-caracteres {
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+/* Textos de ayuda: en el HTML traen tamaños en línea muy pequeños */
+.contenido small {
+    font-size: 12px !important;
+}
+
+.contenido label {
+    color: var(--ink-soft);
+}
+
+.item-radio {
+    font-size: 14.5px;
+}
+
+.circulo-radio {
+    width: 22px;
+    height: 22px;
+    border-color: var(--ink-soft);
+}
+
+#estadoDisponible:checked + .circulo-radio {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    box-shadow: none;
+}
+
+#estadoDanado:checked + .circulo-radio {
+    background-color: var(--red);
+    border-color: var(--red);
+    box-shadow: none;
+}
+
+.caja-subir-foto {
+    background: var(--surface-2);
+    border-color: var(--ink-soft);
+    color: var(--accent);
+}
+
+/* ---------- Interruptor Herramienta / Área (píldoras) ---------- */
+.interruptor-tipo {
+    background: var(--surface);
+    border: none;
+    padding: 5px;
+    margin-bottom: 16px;
+}
+
+.interruptor-tipo label {
+    padding: 12px 6px;
+    font-size: 14px;
+}
+
+#tipoHerramienta:checked ~ .interruptor-tipo label[for="tipoHerramienta"],
+#tipoArea:checked ~ .interruptor-tipo label[for="tipoArea"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: none;
+}
+
+/* ---------- Tarjetas de reportes ---------- */
+.tarjeta-seleccion-reporte {
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    background: var(--surface);
+    border: none;
+    border-radius: var(--radius-md);
+    box-shadow: none;
+}
+
+.tarjeta-seleccion-reporte .title {
+    font-size: 15px;
+}
+
+.tarjeta-seleccion-reporte .desc {
+    font-size: 12.5px;
+    margin-top: 3px;
+}
+
+.tarjeta-seleccion-reporte i {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--accent);
+}
+
+/* ---------- Menú inferior: botones circulares, el activo con el acento ---------- */
+.nav-inferior {
+    height: 78px;
+    padding: 0 22px;
+    background: var(--surface);
+    border-radius: 26px 26px 0 0;
+    justify-content: space-between;
+}
+
+.item-nav {
+    width: 54px;
+    height: 54px;
+    padding: 0;
+    gap: 0;
+    border-radius: 50%;
+    justify-content: center;
+    background: var(--surface-2);
+    color: var(--ink-soft);
+}
+
+.item-nav i {
+    font-size: 19px;
+}
+
+.item-nav span {
+    display: none;
+}
+
+.item-nav.activo {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+/* ---------- Ventanas y panel de perfil ---------- */
+.overlay-modal {
+    background: rgba(5, 12, 20, .72);
+    backdrop-filter: none;
+}
+
+.tarjeta-modal,
+.panel-lateral-perfil {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: none;
+}
+
+.encabezado-modal h2 {
+    font-size: 18px;
+}
+
+.cerrar-modal {
+    background: var(--surface-2);
+    color: var(--ink);
+    border: none;
+}
+
+.etiqueta-campo {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.tarjeta-perfil {
+    background: var(--surface-2);
+    border: none;
+}
+
+/* ---------- Paginador ---------- */
+.paginador-info {
+    font-size: 12px;
+}
+
+.paginador-botones button {
+    min-width: 38px;
+    height: 38px;
+    font-size: 13px;
+    background: var(--surface-2);
+    border: none;
+    border-radius: 999px;
+    color: var(--ink);
+}
+
+.paginador-botones button.activa {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+/* ---------- Inicio de sesión ---------- */
+.pantalla-login {
+    background: var(--bg);
+}
+
+.tarjeta-login {
+    background: var(--surface);
+    border: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    padding: 32px 22px;
+}
+
+.marcador-logo {
+    background: #fff;
+    border: none;
+    box-shadow: none;
+}
+
+.tarjeta-login h2 {
+    font-size: 20px;
+}
+
+.grupo-campo-login input {
+    background: var(--surface-2);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    padding: 14px 16px;
+    font-size: 15px;
+}
+
+.grupo-campo-login label {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.pie-login {
+    color: var(--ink-soft);
+}
+
+/* ---------- Alertas (SweetAlert) en oscuro ---------- */
+.swal2-popup {
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: var(--radius-lg);
+}
+
+.swal2-title,
+.swal2-html-container {
+    color: var(--ink);
+}
+
+.swal2-input,
+.swal2-file {
+    background: var(--surface-2);
+    color: var(--ink);
+    border-color: var(--line);
+}
+
+/* ---------- Escritorio: el marco de teléfono de presentación ---------- */
+@media (min-width: 900px) {
+    body {
+        background: #070d14;
+    }
+
+    .marco-movil {
+        box-shadow: 0 0 0 8px #000;
+    }
+}
+
+/* ---------- Retoques ---------- */
+
+/* Los bloques que solo contienen mosaicos van directo sobre el fondo, sin tarjeta exterior */
+.caja-tarjeta:has(> .cuadricula-2),
+.caja-tarjeta:has(> .cuadricula-4) {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 22px;
+}
+
+.caja-tarjeta:has(> .cuadricula-2) > .titulo-tarjeta,
+.caja-tarjeta:has(> .cuadricula-4) > .titulo-tarjeta {
+    font-size: 17px;
+    margin-bottom: 12px;
+}
+
+/* Etiquetas de campo que traen el tamaño escrito en el HTML */
+.contenido label[style] {
+    font-size: 12px !important;
+    letter-spacing: .03em;
+}
+
+.enlace-azul-centrado {
+    display: block;
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
