@@ -185,11 +185,7 @@ body,
 
 .fondo-naranja .number { color: var(--ink); }
 
-/* El primer mosaico va relleno de color: es el dato principal */
-.cuadricula-2 > .tarjeta-estadistica:first-child {
-    background: #1f6fc4;
-}
-
+/* El primer mosaico va relleno de color: es el dato principal (el color exacto se fija más abajo, en la sección de cristal) */
 .cuadricula-2 > .tarjeta-estadistica:first-child i {
     background: rgba(255, 255, 255, .18);
     color: #fff;
@@ -750,9 +746,9 @@ body,
     backdrop-filter: none;
 }
 
-/* El dato principal va relleno de color sólido */
+/* El dato principal va relleno de color sólido (azul profundo, de la misma familia que el fondo) */
 .cuadricula-2 > .tarjeta-estadistica:first-child {
-    background: #1f6fc4;
+    background: #123a6b;
     border-color: rgba(255, 255, 255, .12);
 }
 
@@ -1274,6 +1270,23 @@ textarea:focus-visible {
     margin: 0;
     font-size: 14px;
     color: var(--ink-soft);
+}
+
+/* =====================================================================
+   El azul profundo del mosaico principal se repite en la acción principal y en el menú
+   ===================================================================== */
+.tarjeta-accion.text-blue {
+    background: #123a6b;
+    border-color: rgba(255, 255, 255, .12);
+}
+
+.tarjeta-accion.text-blue i {
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
+}
+
+.nav-inferior {
+    border-color: rgba(25, 141, 230, .30);
 }
 
 /* El campo de archivo real se oculta: lo reemplaza la caja de arriba */
