@@ -4,6 +4,7 @@ import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
 import { actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
+import { escaparHtml } from "../utils/texto.js";
 
 const TAMANO_LISTA = 10;
 
@@ -47,6 +48,7 @@ export async function initAprobarPrestamosController() {
                 <div class="info-elemento">
                     <div class="titulo-elemento">${fila.recurso}</div>
                     <div class="subtitulo-elemento">${fila.nombreUsuario} · ${fila.fecha}</div>
+                    ${fila.datos.observaciones ? `<div class="nota-solicitud"><i class="fa-regular fa-comment"></i> ${escaparHtml(fila.datos.observaciones)}</div>` : ""}
                 </div>
                 <div class="acciones-solicitud">
                     <button class="boton-aprobar" data-aprobar="${fila.id}" title="Aprobar"><i class="fa-solid fa-check"></i></button>
@@ -83,6 +85,24 @@ export async function initAprobarPrestamosController() {
 
         const prestamoOriginal = fila.datos;
 
+        // Al rechazar se puede dejar un motivo: el solicitante lo verá en su aviso
+        let motivoRechazo;
+        if (nombreEstadoNuevo === "RECHAZADO") {
+            const respuesta = await Swal.fire({
+                title: "Rechazar préstamo",
+                text: "Puedes explicarle al solicitante por qué (opcional).",
+                input: "textarea",
+                inputPlaceholder: "Motivo del rechazo",
+                inputAttributes: { maxlength: 150 },
+                showCancelButton: true,
+                confirmButtonText: "Rechazar",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#dc3545",
+            });
+            if (!respuesta.isConfirmed) return;
+            motivoRechazo = (respuesta.value || "").trim();
+        }
+
         try {
             await actualizarPrestamo(idPrestamo, {
                 usuario: prestamoOriginal.idUsuario,
@@ -90,6 +110,7 @@ export async function initAprobarPrestamosController() {
                 fechaEsperada: prestamoOriginal.fechaEsperada,
                 fechaDevolucion: prestamoOriginal.fechaDevolucion,
                 estado: estadoNuevo.id,
+                ...(motivoRechazo !== undefined ? { motivoRechazo } : {}),
             });
 
             if (nombreEstadoNuevo === "APROBADO") {

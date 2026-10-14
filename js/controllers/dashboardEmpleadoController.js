@@ -2,6 +2,7 @@ import { colorVencimiento, formatearFechaHora as formatearFecha } from "../utils
 import { usuarioActual, idUsuarioActual } from "../utils/sesion.js";
 import { obtenerPrestamosPagina } from "../services/prestamoService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
+import { mostrarAvisosRechazo } from "../utils/avisos.js";
 
 const CLASE_VENCIMIENTO = { rojo: "due-red", amarillo: "due-yellow", verde: "due-green" };
 
@@ -35,6 +36,8 @@ function consultaActivos(extra = {}) {
 export function initDashboardEmpleadoController() {
     const statActivos = document.getElementById("statMisActivos");
     if (!statActivos) return;
+
+    mostrarAvisosRechazo();
 
     const titulo = document.getElementById("tituloBienvenida");
     const nombre = (usuarioActual() || {}).nombreUsuario;

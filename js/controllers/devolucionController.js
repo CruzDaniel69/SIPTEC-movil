@@ -1,22 +1,25 @@
-import { ahoraLocalISO } from "../utils/fechas.js";
+import { ahoraLocalISO, formatearFechaHora, estaVencido } from "../utils/fechas.js";
 import { actualizarDetalleHerramienta } from "../services/detalleHerramientaService.js";
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
-import { actualizarPrestamo, obtenerPrestamoActivoPorPieza, subirEvidenciaPrestamo } from "../services/prestamoService.js";
+import { actualizarPrestamo, obtenerPrestamosPagina, obtenerPrestamoActivoPorPieza, subirEvidenciaPrestamo } from "../services/prestamoService.js";
 import { obtenerEstadosPrestamo } from "../services/estadoPrestamoService.js";
-import { obtenerPiezaPorCodigo, obtenerPiezasPagina } from "../services/inventarioService.js";
+import { obtenerPiezaPorCodigo } from "../services/inventarioService.js";
 import { puedeGestionar } from "../utils/rol.js";
 import { validarImagen, conectarSelectorFoto } from "../utils/imagenes.js";
+import { pintarPaginador } from "../utils/paginacion.js";
+import { escaparHtml } from "../utils/texto.js";
+
+const TAMANO_LISTA = 8;
 
 let listaEstadosHerramienta = [];
 let listaEstadosPrestamo = [];
-let detalleSeleccionado = null;
 
 export function initDevolucionController() {
     const equipoCodigo = document.getElementById("equipoCodigo");
-    const btnBuscarManual = document.getElementById("btnBuscarManual");
-    const fechaDevolucion = document.getElementById("fechaDevolucion");
-    const estadoDisponible = document.getElementById("estadoDisponible");
-    const estadoDanado = document.getElementById("estadoDanado");
+    const listaDevoluciones = document.getElementById("listaDevoluciones");
+    const btnReportarDano = document.getElementById("btnReportarDano");
+    const estadoEquipo = document.getElementById("estadoEquipo");
+    const textoEstadoEquipo = document.getElementById("textoEstadoEquipo");
     const observaciones = document.getElementById("observacionesDevolucion");
     const evidencia = document.getElementById("evidenciaDevolucion");
     const cajaEvidencia = document.getElementById("cajaEvidencia");
@@ -34,97 +37,206 @@ export function initDevolucionController() {
         quitar: document.getElementById("quitarEvidencia"),
     });
 
-    if (!puedeGestionar(["ADMINISTRADOR", "IT"])) {
+    const puedeRegistrar = puedeGestionar(["ADMINISTRADOR", "IT"]);
+    if (!puedeRegistrar) {
         btnRegistrarDevolucion.disabled = true;
         btnRegistrarDevolucion.textContent = "Solo un administrador o IT puede registrar devoluciones";
         equipoCodigo.disabled = true;
-        if (btnBuscarManual) btnBuscarManual.classList.add("oculto");
+        if (btnReportarDano) btnReportarDano.classList.add("oculto");
     }
 
-    detalleSeleccionado = null;
+    let seleccionado = null;     // préstamo elegido (resumen que devuelve la API)
+    let danadas = new Set();     // idDetalle de las piezas que el admin reportó dañadas
+    let paginaActual = 0;
+    let filas = [];
 
-    const ahora = ahoraLocalISO();
-    fechaDevolucion.max = ahora;
-    fechaDevolucion.value = ahora;
+    function textoPiezas(prestamo) {
+        const piezas = prestamo.piezas || [];
+        if (prestamo.tipo === "Herramienta" && prestamo.idHerramienta) {
+            return piezas.length > 0 ? piezas.map((p) => p.codInv).join(", ") : "x" + prestamo.cantidad;
+        }
+        return "";
+    }
+
+    function etiquetaPrestamo(prestamo) {
+        const piezas = textoPiezas(prestamo);
+        return `${prestamo.nombreProducto || "Préstamo"}${piezas ? " (" + piezas + ")" : ""}`;
+    }
+
+    function codigoPrestamo(id) {
+        return "PR-" + String(id).padStart(3, "0");
+    }
+
+    function pintarEstadoEquipo() {
+        const hayDano = danadas.size > 0;
+        estadoEquipo.classList.toggle("con-dano", hayDano);
+        estadoEquipo.querySelector("i").className = hayDano ? "fa-solid fa-triangle-exclamation" : "fa-solid fa-circle-check";
+
+        if (hayDano && seleccionado) {
+            const codigos = (seleccionado.piezas || []).filter((p) => danadas.has(p.idDetalle)).map((p) => p.codInv);
+            textoEstadoEquipo.textContent = "Daño reportado: " + codigos.join(", ");
+        } else {
+            textoEstadoEquipo.textContent = "Todo vuelve en buen estado";
+        }
+
+        if (btnReportarDano) {
+            btnReportarDano.innerHTML = hayDano
+                ? '<i class="fa-solid fa-rotate-left"></i> Quitar el reporte de daño'
+                : '<i class="fa-solid fa-triangle-exclamation"></i> Reportar daño';
+        }
+    }
+
+    function pintarLista() {
+        if (filas.length === 0) {
+            listaDevoluciones.innerHTML = '<p class="estado-texto">No hay préstamos por devolver.</p>';
+            return;
+        }
+
+        listaDevoluciones.innerHTML = filas.map((prestamo) => {
+            const retrasado = prestamo.fechaEsperada && estaVencido(prestamo.fechaEsperada);
+            const elegido = seleccionado && seleccionado.id === prestamo.id;
+            return `
+            <button type="button" class="opcion-devolucion ${elegido ? "seleccionada" : ""}" data-prestamo="${prestamo.id}">
+                <span class="opcion-devolucion-cabecera">
+                    <b>${escaparHtml(etiquetaPrestamo(prestamo))}</b>
+                    <small>${codigoPrestamo(prestamo.id)}</small>
+                </span>
+                <span class="opcion-devolucion-detalle">${escaparHtml(prestamo.nombreUsuario || "Usuario")}</span>
+                <span class="opcion-devolucion-detalle ${retrasado ? "retrasado" : ""}">
+                    ${retrasado ? "Retrasado · " : "Esperada · "}${formatearFechaHora(prestamo.fechaEsperada)}
+                </span>
+            </button>`;
+        }).join("");
+    }
+
+    async function cargarPagina(pagina = paginaActual) {
+        const datos = await obtenerPrestamosPagina({
+            page: pagina,
+            size: TAMANO_LISTA,
+            estados: ["APROBADO", "ENTREGADO"],
+            sinDevolucion: true,
+        });
+
+        if (datos.content.length === 0 && pagina > 0) {
+            return cargarPagina(pagina - 1);
+        }
+
+        paginaActual = datos.page;
+        filas = datos.content;
+        pintarLista();
+        pintarPaginador(document.getElementById("paginadorDevoluciones"), datos, async (destino) => {
+            try {
+                await cargarPagina(destino);
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo cargar la página", text: "Revisa tu conexión con el servidor." });
+            }
+        });
+    }
+
+    function elegirPrestamo(prestamo) {
+        seleccionado = prestamo;
+        danadas = new Set();
+        pintarEstadoEquipo();
+        pintarLista();
+    }
 
     function limpiarFormulario() {
-        detalleSeleccionado = null;
+        seleccionado = null;
+        danadas = new Set();
         equipoCodigo.value = "";
-        fechaDevolucion.value = ahoraLocalISO();
         if (evidencia) evidencia.value = "";
         mostrarEvidencia();
-        estadoDisponible.checked = true;
         if (observaciones) {
             observaciones.value = "";
             const contador = document.getElementById("c2");
             if (contador) contador.innerText = "0";
         }
+        pintarEstadoEquipo();
     }
 
-    async function seleccionarPorCodigo(codigo) {
-        const texto = (codigo || "").trim();
-        if (!texto) {
-            detalleSeleccionado = null;
-            return null;
-        }
+    // Atajo: al escanear el código de un equipo se elige el préstamo que lo tiene
+    equipoCodigo.addEventListener("change", async () => {
+        const texto = equipoCodigo.value.trim();
+        if (!texto) return;
 
         try {
-            const encontrado = await obtenerPiezaPorCodigo(texto);
-            detalleSeleccionado = encontrado;
-            equipoCodigo.value = encontrado.codInv;
-            return encontrado;
+            const pieza = await obtenerPiezaPorCodigo(texto);
+            const prestamo = pieza ? await obtenerPrestamoActivoPorPieza(pieza.idDetalle) : null;
+
+            if (!prestamo) {
+                Swal.fire({ icon: "info", title: "Sin préstamo activo", text: "El equipo " + texto + " no está en un préstamo por devolver." });
+                return;
+            }
+            equipoCodigo.value = "";
+            elegirPrestamo(prestamo);
         } catch (error) {
-            detalleSeleccionado = null;
-            return null;
+            Swal.fire({ icon: "warning", title: "Equipo no encontrado", text: "No existe un equipo con el código " + texto + "." });
         }
-    }
+    });
 
-    function conectarBusquedaCodigo() {
-        equipoCodigo.addEventListener("change", async () => {
-            const encontrado = await seleccionarPorCodigo(equipoCodigo.value);
-            if (!encontrado && equipoCodigo.value.trim()) {
-                Swal.fire({ icon: "warning", title: "Equipo no encontrado", text: "No existe un equipo con el código " + equipoCodigo.value.trim() + "." });
-            }
-        });
-    }
+    listaDevoluciones.addEventListener("click", (evento) => {
+        const opcion = evento.target.closest("[data-prestamo]");
+        if (!opcion) return;
+        const prestamo = filas.find((p) => p.id === Number(opcion.dataset.prestamo));
+        if (prestamo) elegirPrestamo(prestamo);
+    });
 
-    function conectarBuscadorManual() {
-        if (!btnBuscarManual) return;
-
-        btnBuscarManual.addEventListener("click", async (evento) => {
-            evento.preventDefault();
-
-            let piezasPrestadas = [];
-            try {
-                const pagina = await obtenerPiezasPagina({ page: 0, size: 50, estado: "EN PRESTAMO" });
-                piezasPrestadas = pagina.content;
-            } catch (error) {
-                console.error(error);
-                Swal.fire({ icon: "error", title: "No se pudieron cargar los equipos", text: "Revisa tu conexión con el servidor." });
+    // Reportar daño es opcional: por defecto todo vuelve en buen estado
+    if (btnReportarDano) {
+        btnReportarDano.addEventListener("click", async () => {
+            if (danadas.size > 0) {
+                danadas = new Set();
+                pintarEstadoEquipo();
                 return;
             }
 
-            if (piezasPrestadas.length === 0) {
-                Swal.fire({ icon: "info", title: "Nada por devolver", text: "Ahora mismo no hay equipos prestados. Solo se pueden devolver equipos cuyo préstamo ya fue aprobado y entregado." });
+            if (!seleccionado) {
+                Swal.fire({ icon: "warning", title: "Elige un préstamo", text: "Primero selecciona el préstamo que se devuelve." });
                 return;
             }
 
-            const opciones = {};
-            piezasPrestadas.forEach((pieza) => {
-                opciones[pieza.codInv] = `${pieza.nombreHerramienta} - ${pieza.codInv}`;
+            const piezas = seleccionado.piezas || [];
+            if (piezas.length === 0) {
+                Swal.fire({ icon: "info", title: "Sin piezas", text: "Este préstamo no tiene piezas individuales que marcar como dañadas." });
+                return;
+            }
+
+            const casillas = document.createElement("div");
+            casillas.className = "casillas-dano";
+            piezas.forEach((pieza) => {
+                const etiqueta = document.createElement("label");
+                etiqueta.className = "casilla-dano";
+                const casilla = document.createElement("input");
+                casilla.type = "checkbox";
+                casilla.dataset.idDetalle = pieza.idDetalle;
+                casilla.checked = piezas.length === 1;
+                etiqueta.appendChild(casilla);
+                etiqueta.appendChild(document.createTextNode(" " + pieza.codInv));
+                casillas.appendChild(etiqueta);
             });
 
-            const { value: codigoElegido } = await Swal.fire({
-                title: "Selecciona un equipo",
-                text: "Equipos que están prestados actualmente",
-                input: "select",
-                inputOptions: opciones,
-                inputPlaceholder: "Selecciona un equipo",
-                confirmButtonColor: "#28a745",
+            const respuesta = await Swal.fire({
+                title: "¿Qué pieza llegó dañada?",
+                html: casillas,
+                showCancelButton: true,
+                confirmButtonText: "Reportar daño",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#f2a43a",
+                preConfirm: () => {
+                    const marcadas = Array.from(casillas.querySelectorAll("input:checked")).map((c) => Number(c.dataset.idDetalle));
+                    if (marcadas.length === 0) {
+                        Swal.showValidationMessage("Marca al menos una pieza.");
+                        return false;
+                    }
+                    return marcadas;
+                },
             });
 
-            if (codigoElegido) {
-                await seleccionarPorCodigo(codigoElegido);
+            if (respuesta.isConfirmed) {
+                danadas = new Set(respuesta.value);
+                pintarEstadoEquipo();
+                if (observaciones && !observaciones.value.trim()) observaciones.focus();
             }
         });
     }
@@ -135,21 +247,17 @@ export function initDevolucionController() {
             return;
         }
 
-        if (!detalleSeleccionado) {
-            Swal.fire({ icon: "warning", title: "Selecciona un equipo", text: "Escanea o busca el código del equipo a devolver." });
+        if (!seleccionado) {
+            Swal.fire({ icon: "warning", title: "Elige un préstamo", text: "Toca el préstamo que se devuelve o escanea el código de un equipo." });
             return;
         }
 
-        if (!fechaDevolucion.value) {
-            Swal.fire({ icon: "warning", title: "Falta la fecha", text: "Selecciona la fecha y la hora de devolución." });
-            return;
-        }
+        const estadoDevuelto = listaEstadosPrestamo.find((item) => item.nombreEstado === "DEVUELTO");
+        const idDisponible = (listaEstadosHerramienta.find((item) => item.nombreEstadoHerramienta === "DISPONIBLE") || {}).id;
+        const idDanado = (listaEstadosHerramienta.find((item) => item.nombreEstadoHerramienta === "DAÑADO") || {}).id;
 
-        const nombreEstadoElegido = estadoDanado.checked ? "DAÑADO" : "DISPONIBLE";
-        const estadoElegido = listaEstadosHerramienta.find((item) => item.nombreEstadoHerramienta === nombreEstadoElegido);
-
-        if (!estadoElegido) {
-            Swal.fire({ icon: "error", title: "No se pudo registrar la devolución", text: "No se encontró el estado del equipo." });
+        if (!estadoDevuelto || !idDisponible || (danadas.size > 0 && !idDanado)) {
+            Swal.fire({ icon: "error", title: "No se pudo registrar la devolución", text: "No se encontraron los estados necesarios." });
             return;
         }
 
@@ -160,12 +268,11 @@ export function initDevolucionController() {
             return;
         }
 
-        const nombreEquipo = detalleSeleccionado.nombreHerramienta || detalleSeleccionado.codInv;
-
+        const resumenDano = danadas.size > 0 ? ` Con <b>${danadas.size}</b> pieza(s) dañada(s).` : " Todo en buen estado.";
         const confirmacion = await Swal.fire({
             icon: "question",
             title: "¿Confirmar devolución?",
-            html: `Vas a registrar la devolución de <b>${nombreEquipo}</b> (${detalleSeleccionado.codInv}) como <b>${nombreEstadoElegido}</b>.`,
+            html: `Vas a registrar la devolución de <b>${escaparHtml(etiquetaPrestamo(seleccionado))}</b> (${codigoPrestamo(seleccionado.id)}).${resumenDano}`,
             showCancelButton: true,
             confirmButtonText: "Sí, registrar",
             cancelButtonText: "Cancelar",
@@ -176,56 +283,47 @@ export function initDevolucionController() {
             return;
         }
 
+        const prestamo = seleccionado;
+        const nota = observaciones ? observaciones.value.trim() : "";
+
         try {
-            await actualizarDetalleHerramienta(detalleSeleccionado.idDetalle, {
-                idHerramienta: detalleSeleccionado.idHerramienta,
-                idMarca: detalleSeleccionado.idMarca,
-                idEstadoHerramienta: estadoElegido.id,
-                codInv: detalleSeleccionado.codInv,
+            await actualizarPrestamo(prestamo.id, {
+                usuario: prestamo.idUsuario,
+                fechaInicio: prestamo.fechaInicio,
+                fechaEsperada: prestamo.fechaEsperada,
+                fechaDevolucion: ahoraLocalISO(),
+                estado: estadoDevuelto.id,
+                ...(nota ? { observacionDevolucion: nota } : {}),
             });
 
-            const estadoDevuelto = listaEstadosPrestamo.find((item) => item.nombreEstado === "DEVUELTO");
-            const prestamoAsociado = await obtenerPrestamoActivoPorPieza(detalleSeleccionado.idDetalle);
-
-            let piezasPendientes = 0;
-            if (prestamoAsociado) {
-                piezasPendientes = prestamoAsociado.piezas
-                    .filter((pieza) => pieza.idDetalle !== detalleSeleccionado.idDetalle)
-                    .filter((pieza) => pieza.nombreEstadoHerramienta === "EN PRESTAMO").length;
-            }
-
-            if (prestamoAsociado && estadoDevuelto && piezasPendientes === 0) {
-                await actualizarPrestamo(prestamoAsociado.id, {
-                    usuario: prestamoAsociado.idUsuario,
-                    fechaInicio: prestamoAsociado.fechaInicio,
-                    fechaEsperada: prestamoAsociado.fechaEsperada,
-                    fechaDevolucion: fechaDevolucion.value,
-                    estado: estadoDevuelto.id,
+            for (const pieza of prestamo.piezas || []) {
+                await actualizarDetalleHerramienta(pieza.idDetalle, {
+                    idHerramienta: pieza.idHerramienta,
+                    idMarca: pieza.idMarca,
+                    idEstadoHerramienta: danadas.has(pieza.idDetalle) ? idDanado : idDisponible,
+                    codInv: pieza.codInv,
                 });
             }
 
             // La evidencia se sube aparte: si falla, la devolución ya quedó registrada y solo se avisa
             let evidenciaFallo = false;
-            if (fotoEvidencia && prestamoAsociado) {
+            if (fotoEvidencia) {
                 try {
-                    await subirEvidenciaPrestamo(prestamoAsociado.id, fotoEvidencia);
+                    await subirEvidenciaPrestamo(prestamo.id, fotoEvidencia);
                 } catch (error) {
                     console.error(error);
                     evidenciaFallo = true;
                 }
             }
 
-            const textos = [];
-            if (piezasPendientes > 0) textos.push(`Todavía quedan ${piezasPendientes} pieza(s) de este préstamo por devolver.`);
-            if (evidenciaFallo) textos.push("La foto de evidencia no se pudo subir.");
-
             Swal.fire({
                 icon: evidenciaFallo ? "warning" : "success",
                 title: "¡Devolución registrada!",
-                text: textos.length > 0 ? textos.join(" ") : undefined,
+                text: evidenciaFallo ? "La foto de evidencia no se pudo subir." : undefined,
                 confirmButtonColor: "#28a745",
             });
             limpiarFormulario();
+            await cargarPagina(paginaActual);
 
         } catch (error) {
             console.error(error);
@@ -247,19 +345,16 @@ export function initDevolucionController() {
 
     (async function cargarCatalogos() {
         try {
-            listaEstadosHerramienta = await obtenerEstadosHerramienta();
-            listaEstadosPrestamo = await obtenerEstadosPrestamo();
-
-            if (equipoCodigo.value) {
-                await seleccionarPorCodigo(equipoCodigo.value);
-            }
+            [listaEstadosHerramienta, listaEstadosPrestamo] = await Promise.all([
+                obtenerEstadosHerramienta(),
+                obtenerEstadosPrestamo(),
+            ]);
+            await cargarPagina(0);
         } catch (error) {
             console.error(error);
-            Swal.fire({ icon: "error", title: "No se pudieron cargar los catálogos", text: "Revisa tu conexión con el servidor." });
+            listaDevoluciones.innerHTML = '<p class="estado-texto">No se pudo cargar la lista. Revisa tu conexión con el servidor.</p>';
         }
     })();
 
-    conectarBusquedaCodigo();
-    conectarBuscadorManual();
     btnRegistrarDevolucion.addEventListener("click", registrarDevolucion);
 }

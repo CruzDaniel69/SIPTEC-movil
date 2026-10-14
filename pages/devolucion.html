@@ -5,40 +5,32 @@
         <i class="fa-solid fa-chevron-down"></i>
     </button>
 </div>
+<div class="subtitulo-encabezado">Registra la devolución de un equipo</div>
 
 <div class="caja-tarjeta">
-    <div class="titulo-tarjeta">Seleccionar equipo</div>
+    <div class="titulo-tarjeta">Préstamos por devolver</div>
     <div class="caja-buscador">
-        <input type="text" id="equipoCodigo" placeholder="Escanea el código del equipo" autocomplete="off" autocapitalize="characters" spellcheck="false">
-        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="equipoCodigo" placeholder="Escanea el código de un equipo" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <i class="fa-solid fa-barcode"></i>
     </div>
-    <a class="enlace-azul-centrado" id="btnBuscarManual">Buscar manualmente</a>
-</div>
-
-<div class="caja-tarjeta">
-    <div class="titulo-tarjeta">Fecha y hora de devolución</div>
-    <input type="datetime-local" class="campo-fecha" id="fechaDevolucion" style="width:100%;" required>
+    <div id="listaDevoluciones" class="lista-devoluciones">
+        <p class="estado-texto">Cargando préstamos...</p>
+    </div>
+    <div id="paginadorDevoluciones" class="paginador"></div>
 </div>
 
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">Estado del equipo</div>
-    <div class="grupo-radio" id="estadoEquipoGroup">
-        <label class="item-radio">
-            <input type="radio" name="estadoEquipo" id="estadoDisponible" value="DISPONIBLE" checked>
-            <span class="circulo-radio"></span>
-            En buen estado
-        </label>
-        <label class="item-radio">
-            <input type="radio" name="estadoEquipo" id="estadoDanado" value="DAÑADO">
-            <span class="circulo-radio"></span>
-            Con daño
-        </label>
+    <div class="estado-equipo" id="estadoEquipo">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="textoEstadoEquipo">Todo vuelve en buen estado</span>
     </div>
+    <button type="button" class="boton-accion-contorno" id="btnReportarDano"><i class="fa-solid fa-triangle-exclamation"></i> Reportar daño</button>
 </div>
 
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">Observaciones (opcional)</div>
-    <textarea class="caja-area-texto" placeholder="Escribe observaciones..." maxlength="150"
+    <textarea class="caja-area-texto" id="observacionesDevolucion" placeholder="Escribe observaciones..." maxlength="150"
         oninput="document.getElementById('c2').innerText = this.value.length"></textarea>
     <div class="contador-caracteres"><span id="c2">0</span>/150</div>
 </div>

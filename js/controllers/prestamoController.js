@@ -174,6 +174,7 @@ export function initPrestamoController() {
                 fechaEsperada: fechaEsperada.value,
                 fechaDevolucion: null,
                 estado: estadoPendiente.id,
+                observaciones: observaciones ? observaciones.value.trim() : "",
             });
 
             if (tipoHerramienta.checked) {
