@@ -8,6 +8,7 @@ import { puedeGestionar } from "../utils/rol.js";
 import { validarImagen, conectarSelectorFoto } from "../utils/imagenes.js";
 import { pintarPaginador } from "../utils/paginacion.js";
 import { escaparHtml } from "../utils/texto.js";
+import { esqueletoTarjetas } from "../utils/esqueleto.js";
 
 const TAMANO_LISTA = 8;
 
@@ -50,6 +51,8 @@ export function initDevolucionController() {
 
     let paginaActual = 0;
     let filas = [];
+
+    lista.innerHTML = esqueletoTarjetas(3);
 
     function pintarLista() {
         if (filas.length === 0) {

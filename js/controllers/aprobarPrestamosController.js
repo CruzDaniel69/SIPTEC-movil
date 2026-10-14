@@ -5,6 +5,7 @@ import { actualizarDetalleHerramienta } from "../services/detalleHerramientaServ
 import { obtenerEstadosHerramienta } from "../services/estadoHerramientaService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
 import { escaparHtml } from "../utils/texto.js";
+import { esqueletoFilas } from "../utils/esqueleto.js";
 
 const TAMANO_LISTA = 10;
 
@@ -12,6 +13,8 @@ const TAMANO_LISTA = 10;
 export async function initAprobarPrestamosController() {
     const lista = document.getElementById("listaSolicitudesPendientes");
     if (!lista) return;
+
+    lista.innerHTML = esqueletoFilas(3);
 
     let estados = [];
     let estadosHerramienta = [];

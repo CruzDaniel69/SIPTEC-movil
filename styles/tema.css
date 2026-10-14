@@ -1691,3 +1691,81 @@ select option:checked {
     background: var(--accent);
     color: var(--accent-ink);
 }
+
+/* =====================================================================
+   Marcadores de carga: formas grises que laten suavemente (sin brillos que se desplazan)
+   ===================================================================== */
+@keyframes esqueleto-latido {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .45; }
+}
+
+.esqueleto {
+    display: block;
+    background: var(--glass-2);
+    border-radius: 8px;
+    animation: esqueleto-latido 1.4s ease-in-out infinite;
+}
+
+.esqueleto-fila {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    min-height: 72px;
+}
+
+.esqueleto-icono {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+}
+
+.esqueleto-textos {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.esqueleto-linea {
+    height: 13px;
+    width: 70%;
+}
+
+.esqueleto-linea.corta {
+    width: 45%;
+    height: 11px;
+}
+
+.esqueleto-tarjeta {
+    height: 96px;
+    margin-bottom: 14px;
+    border-radius: var(--radius-md);
+}
+
+/* Número de una estadística que todavía no llega */
+.tarjeta-estadistica .number.cargando {
+    width: 44px;
+    height: 30px;
+    color: transparent;
+    background: var(--glass-2);
+    border-radius: 8px;
+    animation: esqueleto-latido 1.4s ease-in-out infinite;
+}
+
+.cuadricula-2 > .tarjeta-estadistica:first-child:nth-last-child(4) .number.cargando {
+    height: 50px;
+    width: 70px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .esqueleto,
+    .tarjeta-estadistica .number.cargando { animation: none; }
+}
+
+:root[data-tema="claro"] .esqueleto,
+:root[data-tema="claro"] .tarjeta-estadistica .number.cargando {
+    background: rgba(20, 40, 70, .11);
+}

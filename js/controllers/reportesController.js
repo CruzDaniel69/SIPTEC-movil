@@ -2,6 +2,7 @@ import { formatearFechaHora as formatearFecha, aValorInput } from "../utils/fech
 import { obtenerPrestamosPagina } from "../services/prestamoService.js";
 import { obtenerPiezasPagina } from "../services/inventarioService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
+import { esqueletoFilas } from "../utils/esqueleto.js";
 
 const TAMANO_PAGINA_DETALLE = 10;
 const TAMANO_LOTE_MODAL = 25;
@@ -93,6 +94,7 @@ export async function initReporteDetalleController() {
     const tipo = tipoInput.value || "activos";
     const info = TITULOS_REPORTE[tipo] || TITULOS_REPORTE.activos;
 
+    lista.innerHTML = esqueletoFilas(4);
     document.getElementById("tituloReporteDetalle").textContent = info.titulo;
     document.getElementById("subtituloReporteDetalle").textContent = info.subtitulo;
 

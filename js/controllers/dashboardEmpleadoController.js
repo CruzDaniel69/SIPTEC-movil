@@ -3,6 +3,7 @@ import { usuarioActual, idUsuarioActual } from "../utils/sesion.js";
 import { obtenerPrestamosPagina } from "../services/prestamoService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
 import { mostrarAvisosRechazo } from "../utils/avisos.js";
+import { esqueletoFilas, marcarNumerosCargando, quitarNumerosCargando } from "../utils/esqueleto.js";
 
 const CLASE_VENCIMIENTO = { rojo: "due-red", amarillo: "due-yellow", verde: "due-green" };
 
@@ -44,6 +45,9 @@ export function initDashboardEmpleadoController() {
     if (titulo && nombre) titulo.textContent = `¡Bienvenido, ${nombre}!`;
 
     const lista = document.getElementById("listaPrestamosActivos");
+
+    marcarNumerosCargando();
+    lista.innerHTML = esqueletoFilas(3);
 
     function pintarActivos(prestamos) {
         if (prestamos.length === 0) {
@@ -109,6 +113,9 @@ export function initDashboardEmpleadoController() {
         } catch (error) {
             console.error(error);
             Swal.fire({ icon: "error", title: "No se pudo cargar el resumen", text: "Revisa tu conexión con el servidor." });
+            lista.innerHTML = "";
+        } finally {
+            quitarNumerosCargando();
         }
     })();
 }
