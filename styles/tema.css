@@ -1600,3 +1600,51 @@ textarea:focus-visible {
     font-weight: 600;
     overflow-wrap: anywhere;
 }
+
+/* =====================================================================
+   Devolución: la tarjeta de la lista ocupa el alto libre y el botón de búsqueda queda abajo
+   ===================================================================== */
+.pantalla-devolucion {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.caja-lista-devoluciones {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+/* Dentro de la tarjeta, cada préstamo es una fila sin tarjeta propia */
+.caja-lista-devoluciones .tarjeta-seleccion-reporte {
+    background: var(--glass-2);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.caja-lista-devoluciones .estado-texto {
+    margin: auto 0;
+    padding: 40px 0;
+}
+
+.caja-lista-devoluciones > #listaDevoluciones {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.boton-buscar-codigo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.boton-buscar-codigo i {
+    color: var(--accent-texto);
+    font-size: 16px;
+}
