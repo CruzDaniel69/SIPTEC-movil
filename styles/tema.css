@@ -1680,3 +1680,14 @@ textarea:focus-visible {
     color: var(--accent-ink);
     background: var(--accent);
 }
+
+/* Lista desplegable de los selectores: mismo color que los campos, no el azul y blanco del navegador */
+select option {
+    background: var(--campo);
+    color: var(--ink);
+}
+
+select option:checked {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
