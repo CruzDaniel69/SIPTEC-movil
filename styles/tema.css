@@ -1510,67 +1510,8 @@ textarea:focus-visible {
 }
 
 /* =====================================================================
-   Devolución: lista de préstamos por devolver y estado del equipo
+   Devolución: estado del equipo y piezas dañadas
    ===================================================================== */
-.lista-devoluciones {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 14px;
-}
-
-.estado-texto {
-    margin: 8px 0;
-    font-size: 14px;
-    text-align: center;
-    color: var(--ink-soft);
-}
-
-.opcion-devolucion {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    width: 100%;
-    padding: 14px 16px;
-    text-align: left;
-    font: inherit;
-    color: var(--ink);
-    background: var(--glass-2);
-    border: 1.5px solid transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: border-color .2s, background-color .2s;
-}
-
-.opcion-devolucion.seleccionada {
-    border-color: var(--accent);
-    background: rgba(47, 181, 80, .12);
-}
-
-.opcion-devolucion-cabecera {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 14.5px;
-}
-
-.opcion-devolucion-cabecera small {
-    flex: 0 0 auto;
-    font-size: 12px !important;
-    color: var(--ink-soft);
-}
-
-.opcion-devolucion-detalle {
-    font-size: 12.5px;
-    color: var(--ink-soft);
-}
-
-.opcion-devolucion-detalle.retrasado {
-    color: var(--red);
-    font-weight: 600;
-}
-
 .estado-equipo {
     display: flex;
     align-items: center;
@@ -1614,10 +1555,48 @@ textarea:focus-visible {
     height: 18px;
 }
 
-:root[data-tema="claro"] .opcion-devolucion.seleccionada {
-    background: rgba(31, 154, 64, .1);
-}
-
 :root[data-tema="claro"] .estado-equipo.con-dano i {
     color: #a4600a;
+}
+
+/* Devolución: la lista usa las mismas tarjetas que Reportes */
+.estado-texto {
+    margin: 14px 0 20px;
+    font-size: 14px;
+    text-align: center;
+    color: var(--ink-soft);
+}
+
+.tarjeta-seleccion-reporte .desc.texto-retrasado,
+.texto-retrasado {
+    color: var(--red);
+    font-weight: 600;
+}
+
+#listaDevoluciones + .paginador {
+    margin-bottom: 14px;
+}
+
+/* Resumen del préstamo en la pantalla de detalle */
+.datos-prestamo {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dato-prestamo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14.5px;
+}
+
+.dato-prestamo span {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.dato-prestamo b {
+    font-weight: 600;
+    overflow-wrap: anywhere;
 }

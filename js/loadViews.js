@@ -3,7 +3,7 @@ import { initAprobarPrestamosController } from "./controllers/aprobarPrestamosCo
 import { initDashboardController } from "./controllers/dashboardController.js";
 import { initDashboardEmpleadoController } from "./controllers/dashboardEmpleadoController.js";
 import { initReportesController, initReporteDetalleController, initModalGenerarReporte } from "./controllers/reportesController.js";
-import { initDevolucionController } from "./controllers/devolucionController.js";
+import { initDevolucionController, initDevolucionDetalleController } from "./controllers/devolucionController.js";
 import { initImplementoController } from "./controllers/implementoController.js";
 import { temaGuardado, aplicarTema } from "./utils/tema.js";
 import { cargarSesion, cerrarSesionCompleta, usuarioActual, rolActual } from "./utils/sesion.js";
@@ -32,7 +32,7 @@ if (!ES_ADMIN_O_IT && btnNavDevolucion) {
 async function loadView(viewName, checkId, fillId, fillValue) {
     if (!viewRoot) return;
 
-    if (!ES_ADMIN_O_IT && (viewName === "devolucion" || viewName === "agregar-implemento")) {
+    if (!ES_ADMIN_O_IT && (viewName === "devolucion" || viewName === "devolucion-detalle" || viewName === "agregar-implemento")) {
         viewName = "dashboard";
         checkId = undefined;
         fillId = undefined;
@@ -89,6 +89,8 @@ async function loadView(viewName, checkId, fillId, fillValue) {
             initReporteDetalleController();
         } else if (viewName === "devolucion") {
             initDevolucionController();
+        } else if (viewName === "devolucion-detalle") {
+            initDevolucionDetalleController();
         } else if (viewName === "agregar-implemento") {
             initImplementoController();
         }
@@ -154,7 +156,7 @@ function marcarBotonActivo(viewName) {
     if (viewName === "dashboard") btnNavInicio.classList.add("activo");
     if (viewName === "loans") btnNavPrestamos.classList.add("activo");
     if (viewName === "reports" || viewName === "reporte-detalle") btnNavReportes.classList.add("activo");
-    if (viewName === "devolucion") btnNavDevolucion.classList.add("activo");
+    if (viewName === "devolucion" || viewName === "devolucion-detalle") btnNavDevolucion.classList.add("activo");
 }
 
 btnNavInicio.addEventListener("click", () => loadView("dashboard"));

@@ -7,46 +7,11 @@
 </div>
 <div class="subtitulo-encabezado">Registra la devolución de un equipo</div>
 
-<div class="caja-tarjeta">
-    <div class="titulo-tarjeta">Préstamos por devolver</div>
-    <div class="caja-buscador">
-        <input type="text" id="equipoCodigo" placeholder="Escanea el código de un equipo" autocomplete="off" autocapitalize="characters" spellcheck="false">
-        <i class="fa-solid fa-barcode"></i>
-    </div>
-    <div id="listaDevoluciones" class="lista-devoluciones">
-        <p class="estado-texto">Cargando préstamos...</p>
-    </div>
-    <div id="paginadorDevoluciones" class="paginador"></div>
-</div>
+<div class="titulo-tarjeta" style="margin-bottom:6px;">Préstamos por devolver</div>
 
-<div class="caja-tarjeta">
-    <div class="titulo-tarjeta">Estado del equipo</div>
-    <div class="estado-equipo" id="estadoEquipo">
-        <i class="fa-solid fa-circle-check"></i>
-        <span id="textoEstadoEquipo">Todo vuelve en buen estado</span>
-    </div>
-    <button type="button" class="boton-accion-contorno" id="btnReportarDano"><i class="fa-solid fa-triangle-exclamation"></i> Reportar daño</button>
+<div id="listaDevoluciones">
+    <p class="estado-texto">Cargando préstamos...</p>
 </div>
+<div id="paginadorDevoluciones" class="paginador"></div>
 
-<div class="caja-tarjeta">
-    <div class="titulo-tarjeta">Observaciones (opcional)</div>
-    <textarea class="caja-area-texto" id="observacionesDevolucion" placeholder="Escribe observaciones..." maxlength="150"
-        oninput="document.getElementById('c2').innerText = this.value.length"></textarea>
-    <div class="contador-caracteres"><span id="c2">0</span>/150</div>
-</div>
-
-<div class="caja-tarjeta">
-    <div class="titulo-tarjeta">Foto de evidencia (opcional)</div>
-    <label class="caja-subir-foto" for="evidenciaDevolucion" id="cajaEvidencia">
-        <img class="vista-previa-foto" id="vistaEvidencia" alt="Vista previa de la foto">
-        <i class="fa-solid fa-camera"></i>
-        <div class="textos-subir">
-            <span id="textoEvidencia">Tomar o elegir una foto</span>
-            <small>JPG, PNG o WEBP · máximo 5 MB</small>
-        </div>
-        <button type="button" class="quitar-foto" id="quitarEvidencia" aria-label="Quitar foto"><i class="fa-solid fa-xmark"></i></button>
-    </label>
-    <input type="file" class="campo-archivo-oculto" id="evidenciaDevolucion" accept="image/jpeg,image/png,image/webp">
-</div>
-
-<button class="boton-accion-verde" id="btnRegistrarDevolucion">Registrar devolución</button>
+<button class="boton-accion-gris" id="btnBuscarPorCodigo"><i class="fa-solid fa-barcode"></i> Buscar por código de equipo</button>
