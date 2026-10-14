@@ -1,4 +1,4 @@
-import { formatearFechaHora as formatearFecha } from "../utils/fechas.js";
+import { formatearFechaHora as formatearFecha, aValorInput } from "../utils/fechas.js";
 import { obtenerPrestamosPagina } from "../services/prestamoService.js";
 import { obtenerPiezasPagina } from "../services/inventarioService.js";
 import { pintarPaginador } from "../utils/paginacion.js";
@@ -10,7 +10,7 @@ const ESTADOS_TODOS = ["PENDIENTE", "APROBADO", "ENTREGADO", "DEVUELTO", "RECHAZ
 
 const TITULOS_REPORTE = {
     activos: { titulo: "Préstamos activos", subtitulo: "Equipos actualmente prestados", vacio: "No hay préstamos activos por el momento." },
-    historial: { titulo: "Historial de préstamos", subtitulo: "Todos los préstamos realizados", vacio: "Aún no hay préstamos registrados." },
+    historial: { titulo: "Historial de préstamos", subtitulo: "Préstamos realizados", vacio: "Aún no hay préstamos registrados." },
     devoluciones: { titulo: "Devoluciones", subtitulo: "Historial de devoluciones", vacio: "Aún no hay devoluciones registradas." },
     danados: { titulo: "Equipos con daño", subtitulo: "Equipos reportados con daño", vacio: "No hay equipos dañados reportados." },
 };
@@ -99,8 +99,58 @@ export async function initReporteDetalleController() {
     const btnVolver = document.getElementById("btnVolverReportes");
     if (btnVolver) btnVolver.addEventListener("click", () => window.loadView("reports"));
 
+    // El historial se puede filtrar por estado y por periodo; por defecto muestra los últimos 30 días
+    const filtros = { estado: "todos", periodo: "30" };
+    const contenedorFiltros = document.getElementById("filtrosReporte");
+
+    function pintarFiltros() {
+        const chip = (grupo, valor, texto) =>
+            `<button type="button" class="chip-filtro ${filtros[grupo] === valor ? "activo" : ""}" data-grupo="${grupo}" data-valor="${valor}">${texto}</button>`;
+
+        contenedorFiltros.innerHTML = `
+            <div class="grupo-chips">${chip("estado", "todos", "Todos")}${chip("estado", "DEVUELTO", "Devueltos")}${chip("estado", "RECHAZADO", "Rechazados")}</div>
+            <div class="grupo-chips">${chip("periodo", "30", "Últimos 30 días")}${chip("periodo", "todo", "Todo")}</div>`;
+    }
+
+    function pedirHistorial(pagina) {
+        const estados = filtros.estado === "todos" ? ESTADOS_TODOS : [filtros.estado];
+        let desde = "";
+        let hasta = "";
+
+        if (filtros.periodo === "30") {
+            const hoy = new Date();
+            const inicio = new Date(hoy);
+            inicio.setDate(hoy.getDate() - 29);
+            const fin = new Date(hoy);
+            fin.setDate(hoy.getDate() + 365); // incluye préstamos que empiezan más adelante
+            desde = aValorInput(inicio).slice(0, 10);
+            hasta = aValorInput(fin).slice(0, 10);
+        }
+
+        return obtenerPrestamosPagina({ page: pagina, size: TAMANO_PAGINA_DETALLE, estados, desde, hasta });
+    }
+
+    if (tipo === "historial" && contenedorFiltros) {
+        pintarFiltros();
+        contenedorFiltros.classList.remove("oculto");
+        contenedorFiltros.addEventListener("click", async (evento) => {
+            const chip = evento.target.closest("[data-grupo]");
+            if (!chip) return;
+            filtros[chip.dataset.grupo] = chip.dataset.valor;
+            pintarFiltros();
+            try {
+                await cargarPagina(0);
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo cargar el reporte", text: "Revisa tu conexión con el servidor." });
+            }
+        });
+    }
+
     async function cargarPagina(pagina) {
-        const datos = await pedirPagina(tipo, null, null, pagina, TAMANO_PAGINA_DETALLE);
+        const datos = tipo === "historial"
+            ? await pedirHistorial(pagina)
+            : await pedirPagina(tipo, null, null, pagina, TAMANO_PAGINA_DETALLE);
         pintarFilas(lista, datos.content.map((elemento) => convertirFila(tipo, elemento)), info.vacio);
         pintarPaginador(document.getElementById("paginadorReporteDetalle"), datos, async (destino) => {
             try {
