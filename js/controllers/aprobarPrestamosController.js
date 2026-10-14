@@ -29,6 +29,8 @@ export async function initAprobarPrestamosController() {
                 ? prestamo.piezas.map((p) => p.codInv).join(", ")
                 : "x" + prestamo.cantidad;
             recurso = `${prestamo.nombreProducto} (${sufijo})`;
+        } else if (prestamo.tipo === "Área" && (prestamo.piezas || []).length > 0) {
+            recurso = `${prestamo.nombreProducto} + ${prestamo.piezas.length} herramientas`;
         }
 
         return {

@@ -24,6 +24,8 @@ function etiquetaPrestamo(prestamo) {
     let sufijo = "";
     if (prestamo.tipo === "Herramienta" && prestamo.idHerramienta) {
         sufijo = piezas.length > 0 ? piezas.map((p) => p.codInv).join(", ") : "x" + prestamo.cantidad;
+    } else if (prestamo.tipo === "Área" && piezas.length > 0) {
+        sufijo = "+" + piezas.length + " herramientas";
     }
     return `${prestamo.nombreProducto || "Préstamo"}${sufijo ? " (" + sufijo + ")" : ""}`;
 }

@@ -57,14 +57,14 @@ export function initImplementoController() {
         const codigos = generarCodigos();
         if (codigos.length === 0) {
             vistaPreviaCodigos.style.color = "var(--ink-soft)";
-            vistaPreviaCodigos.textContent = "Se creará un código por cada pieza (ej. EQ-21, EQ-22…).";
+            vistaPreviaCodigos.textContent = "Ej. EQ-21, EQ-22…";
             return;
         }
 
         vistaPreviaCodigos.style.color = "var(--ink-soft)";
         vistaPreviaCodigos.textContent = codigos.length === 1
-            ? "Se creará: " + codigos[0]
-            : `Se crearán ${codigos.length} piezas: ${codigos[0]} al ${codigos[codigos.length - 1]}`;
+            ? codigos[0]
+            : `${codigos.length} piezas: ${codigos[0]} al ${codigos[codigos.length - 1]}`;
 
         try {
             const repetidos = await codigosRepetidos(codigos);

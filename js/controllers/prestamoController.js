@@ -8,6 +8,7 @@ import { agregarDetallePrestamoHerramienta } from "../services/detallePrestamoHe
 import { agregarDetallePrestamoArea } from "../services/detallePrestamoAreaService.js";
 import { buscarHerramientas, obtenerPiezaPorCodigo, obtenerPiezasDisponibles } from "../services/inventarioService.js";
 import { retrasar } from "../utils/paginacion.js";
+import { preguntarHerramientasDelArea } from "../utils/areaConHerramientas.js";
 
 let listaSugerencias = [];
 let listaAreas = [];
@@ -73,13 +74,13 @@ export function initPrestamoController() {
 
     function pintarUnidades(herramienta, codigoPreseleccionado) {
         if (!herramienta) {
-            contenedorUnidades.innerHTML = '<small style="font-size:9px; color:var(--ink-soft);">Primero busca y selecciona un equipo.</small>';
+            contenedorUnidades.innerHTML = '';
             return;
         }
 
         const unidades = unidadesDisponibles;
         if (unidades.length === 0) {
-            contenedorUnidades.innerHTML = '<small style="font-size:9px; color:var(--red);">No hay piezas disponibles de este equipo.</small>';
+            contenedorUnidades.innerHTML = '<small style="font-size:9px; color:var(--red);">Sin piezas disponibles</small>';
             return;
         }
 
@@ -167,6 +168,19 @@ export function initPrestamoController() {
             return;
         }
 
+        // Un área puede llevarse con las herramientas que hay en ella
+        let piezasDelArea = [];
+        if (!tipoHerramienta.checked) {
+            try {
+                piezasDelArea = await preguntarHerramientasDelArea(Number(idAreaSeleccionada.value));
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "No se pudo consultar el área", text: "Revisa tu conexión con el servidor." });
+                return;
+            }
+            if (piezasDelArea === null) return;
+        }
+
         try {
             const nuevoPrestamo = await agregarPrestamo({
                 usuario: obtenerIdUsuarioActual(),
@@ -191,6 +205,14 @@ export function initPrestamoController() {
                     prestamoIdPrestamo: nuevoPrestamo.id,
                     areasIdArea: Number(idAreaSeleccionada.value),
                 });
+                for (const pieza of piezasDelArea) {
+                    await agregarDetallePrestamoHerramienta({
+                        prestamo: nuevoPrestamo.id,
+                        herramienta: pieza.idHerramienta,
+                        detalleHerramienta: pieza.idDetalle,
+                        cantidad: 1,
+                    });
+                }
             }
 
             Swal.fire({ icon: "success", title: "¡Préstamo registrado!", confirmButtonColor: "#001f3d" });
@@ -240,12 +262,12 @@ export function initPrestamoController() {
                 } else {
                     unidadesDisponibles = [];
                     idHerramientaSeleccionada.value = "";
-                    avisoHerramienta.textContent = "No se encontró ese equipo. Revisa el nombre o el código.";
+                    avisoHerramienta.textContent = "Equipo no encontrado";
                     pintarUnidades(null);
                 }
             } catch (error) {
                 console.error(error);
-                avisoHerramienta.textContent = "No se pudo consultar el equipo. Revisa tu conexión.";
+                avisoHerramienta.textContent = "Sin conexión";
             }
         });
     }
@@ -309,7 +331,7 @@ export function initPrestamoController() {
 
             if (!patronTexto.test(textoBuscado)) {
                 idAreaSeleccionada.value = "";
-                avisoArea.textContent = "La ubicación solo admite letras, números, espacios y los signos . , ( ) -";
+                avisoArea.textContent = "Solo letras, números y . , ( ) -";
                 return;
             }
 
@@ -321,7 +343,7 @@ export function initPrestamoController() {
                     avisoArea.textContent = "Ubicación agregada.";
                 } else {
                     idAreaSeleccionada.value = "";
-                    avisoArea.textContent = "No se encontró esa área.";
+                    avisoArea.textContent = "Área no encontrada";
                 }
             } catch (error) {
                 console.error(error);

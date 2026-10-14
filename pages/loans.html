@@ -17,7 +17,7 @@
 <div class="caja-tarjeta seccion-herramienta">
     <div class="titulo-tarjeta">Seleccionar equipo</div>
     <div class="caja-buscador">
-        <input type="text" id="buscarHerramienta" list="listaEquiposDatalist" placeholder="Escanea o busca el equipo">
+        <input type="text" id="buscarHerramienta" list="listaEquiposDatalist" placeholder="Buscar equipo">
         <i class="fa-solid fa-magnifying-glass"></i>
     </div>
     <datalist id="listaEquiposDatalist"></datalist>
@@ -25,17 +25,15 @@
     <small id="avisoHerramienta" style="display:block; margin-top:4px; font-size:9px; color:var(--ink-soft);"></small>
 
     <label style="display:block; margin-top:12px; margin-bottom:6px; font-size:10px; font-weight:700; color:var(--ink-soft); text-transform:uppercase;">
-        Piezas disponibles (marca las que necesitas)
+        Piezas disponibles
     </label>
-    <div id="listaUnidades" style="display:flex; flex-wrap:wrap; gap:6px;">
-        <small style="font-size:9px; color:var(--ink-soft);">Primero busca y selecciona un equipo.</small>
-    </div>
+    <div id="listaUnidades" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
 </div>
 
 <div class="caja-tarjeta seccion-area">
     <div class="titulo-tarjeta">Seleccionar área</div>
     <div class="caja-buscador">
-        <input type="text" id="buscarArea" list="listaAreasDatalist" placeholder="Busca el área (ej. Laboratorio 1)">
+        <input type="text" id="buscarArea" list="listaAreasDatalist" placeholder="Buscar área">
         <i class="fa-solid fa-magnifying-glass"></i>
     </div>
     <datalist id="listaAreasDatalist"></datalist>
@@ -50,13 +48,13 @@
     <small style="display:block; margin-bottom:4px; font-size:9px; color:var(--ink-soft);">Devolución esperada</small>
     <input type="datetime-local" class="campo-fecha" id="fechaEsperada" style="width:100%;" required>
     <small style="display:block; margin-top:6px; font-size:9px; color:var(--ink-soft);">
-        La devolución debe ser posterior al inicio (puede ser el mismo día, con una hora mayor) y no pasar de 1 mes.
+        Máximo 1 mes
     </small>
 </div>
 
 <div class="caja-tarjeta">
     <div class="titulo-tarjeta">Observaciones (opcional)</div>
-    <textarea class="caja-area-texto" placeholder="Escribe observaciones..." maxlength="150"
+    <textarea class="caja-area-texto" placeholder="Escribe aquí..." maxlength="150"
         oninput="document.getElementById('c1').innerText = this.value.length"></textarea>
     <div class="contador-caracteres"><span id="c1">0</span>/150</div>
 </div>
